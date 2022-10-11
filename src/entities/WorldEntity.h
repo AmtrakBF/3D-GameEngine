@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "api/Model.h"
+#include "rendering/Model.h"
 
 class WorldEntity
 {
@@ -23,6 +23,8 @@ public:
 	bool m_UseCollision;
 
 	glm::vec3 m_CollisionPos;
+	glm::vec3 m_CollisionPosTop;
+	glm::vec3 m_CollisionPosBottom;
 	Model m_Model;
 
 	glm::vec3 GetCollisionLengths();

@@ -13,6 +13,13 @@ Pawn::Pawn(Model model, glm::vec3 position)
 	AttachModel(model, GL_STATIC_DRAW);
 	m_Position = position;
 
+	//! DEBUGGING
+	//! -------------------------------------------------------------
+	SetCollision(2, 5, 2);
+	m_CollisionPosBottom = m_CollisionPos + m_Position;
+	m_CollisionPosTop = m_CollisionPos + m_Position + GetCollisionLengths();
+	//! -------------------------------------------------------------
+
 	glm::mat4 trans = glm::mat4(1.0f);
 	trans = glm::translate(trans, m_Position);
 	for (int x = 0; x < m_Model.vertices.size(); x++)

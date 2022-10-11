@@ -24,25 +24,25 @@
     <ClCompile Include="src\vendor\glm\detail\glm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\api\Camera.cpp">
+    <ClCompile Include="src\rendering\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\api\ElementBuffer.cpp">
+    <ClCompile Include="src\rendering\ElementBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\api\Model.cpp">
+    <ClCompile Include="src\rendering\Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\api\Renderer.cpp">
+    <ClCompile Include="src\rendering\Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\api\Shader.cpp">
+    <ClCompile Include="src\rendering\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\api\VertexArray.cpp">
+    <ClCompile Include="src\rendering\VertexArray.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\api\VertexBuffer.cpp">
+    <ClCompile Include="src\rendering\VertexBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\entities\Actor.cpp">
@@ -58,6 +58,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\collision\Collision.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vendor\events\EventSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\entities\Circle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -917,13 +923,13 @@
     <ClInclude Include="src\collision\Collision.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\api\Camera.h">
+    <ClInclude Include="src\rendering\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\api\ElementBuffer.h">
+    <ClInclude Include="src\rendering\ElementBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\api\Model.h">
+    <ClInclude Include="src\rendering\Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\entities\Pawn.h">
@@ -932,19 +938,19 @@
     <ClInclude Include="src\entities\PlayerController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\api\Renderer.h">
+    <ClInclude Include="src\rendering\Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\api\Shader.h">
+    <ClInclude Include="src\rendering\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\api\VertexArray.h">
+    <ClInclude Include="src\rendering\VertexArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\api\VertexArrayAttribute.h">
+    <ClInclude Include="src\rendering\VertexArrayAttribute.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\api\VertexBuffer.h">
+    <ClInclude Include="src\rendering\VertexBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\entities\World.h">
@@ -957,6 +963,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\entities\WorldEntity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor\events\Event.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor\events\Listener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor\events\EventSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entities\Circle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

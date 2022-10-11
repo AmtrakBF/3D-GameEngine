@@ -2,10 +2,20 @@
 #include "entities/World.h"
 #include "collision/Collision.h"
 
-Line::Line(Model model)
+#include "events/EventSystem.h"
+
+#include <iostream>
+
+Line::Line(Model model, glm::vec3 position)
 {
 	AttachModel(model, GL_DYNAMIC_DRAW);
-	SetCollision(2, 5, 2);
+	SetCollision(2, 4.981599, 2);
+
+	m_Position = position;
+
+	m_CollisionPosBottom = m_CollisionPos + m_Position;
+	m_CollisionPosTop = m_CollisionPos + m_Position + GetCollisionLengths();
+
 	m_UseCollision = true;
 }
 
@@ -18,7 +28,10 @@ void Line::GetInput(GLFWwindow* window)
 		// Left Arrow -- Move Left 1 Unit
 		// ----------------------------------------------------------------
 		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS /*&& m_Position.x > -3*/)
+		{
+			EventSystem::Instance()->SendEvent("test");
 			MoveModel({ -1.0f, 0.0f, 0.0f });
+		}
 
 		// Right Arrow -- Move Right 1 Unit
 		// ----------------------------------------------------------------
@@ -64,4 +77,9 @@ void Line::RotateModel(float rotation, glm::vec3 axis)
 {
 	Rotate(rotation, axis);
 	m_LastKeyPress = 0;
+}
+
+void Line::HandleEvent(Event* event)
+{
+	//std::cout << "event handled" << std::endl;
 }

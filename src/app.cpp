@@ -8,13 +8,16 @@
 
 #include "collision/Collision.h"
 
-#include "api/Shader.h"
-#include "api/Model.h"
-#include "api/Camera.h"
-#include "api/Renderer.h"
+#include "events/EventSystem.h"
+
+#include "rendering/Shader.h"
+#include "rendering/Model.h"
+#include "rendering/Camera.h"
+#include "rendering/Renderer.h"
 
 #include "entities/World.h"
 #include "entities/Pawn.h"
+#include "entities/Circle.h"
 
 #include "players/Line.h"
 
@@ -60,6 +63,7 @@ int main()
 	// -------------------------------------------------------------------
 	// SHADERS
 	Shader shader("res/shaders/vertex.shader", "res/shaders/fragment.shader");
+	Shader shaderCircle("res/shaders/vertex.shader", "res/shaders/fragment.shader");
 	shader.use();
 	shader.SetVec4("color", glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
 
@@ -74,27 +78,34 @@ int main()
 	projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 	shader.SetMat4("projection", projection);
 
+	shaderCircle.use();
+	shaderCircle.SetVec4("color", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	shaderCircle.SetMat4("model", model);
+	shaderCircle.SetMat4("view", view);
+	shaderCircle.SetMat4("projection", projection);
+
 	// -------------------------------------------------------------------
 	// MODELS
-
-
 	std::vector<WorldEntity> Entities;
 
 	Model cube("res/objects/rectangle.obj", shader);
 	cube.InitVertexArray(GL_STATIC_DRAW);
 	Line line(cube);
+	EventSystem::Instance()->RegisterClient("test", &line);
 	Entities.push_back(line);
 
  	Pawn staticLine(cube, { 3.0f, 0.0f, 0.0f });
-	staticLine.SetCollision(2, 5, 2);
-
  	Entities.push_back(staticLine);
+
+	Circle circle({0.0f, 0.0f, 0.0f}, 4, 12, shaderCircle);
 
 	glEnable(GL_DEPTH_TEST);
 
 	while (!glfwWindowShouldClose(window))
 	{
 		camera.ProcessInput(window);
+
+		EventSystem::Instance()->ProcessEvents();
 
 		World::OnUpdate();
 		camera.OnUpdate(World::DeltaTime());
@@ -112,7 +123,18 @@ int main()
 		Renderer::Draw(staticLine.m_Model);
 		Renderer::Draw(line.m_Model);
 
-		if (Collision::CheckCollision(line, staticLine))
+		shaderCircle.use();
+		shaderCircle.SetMat4("view", view);
+		shaderCircle.SetMat4("projection", projection);
+
+		Renderer::Draw(circle);
+
+		bool t1 = Collision::CheckCollision(line, staticLine);
+		bool t2 = Collision::CheckCollision(staticLine, line);
+
+	/*	std::cout << t1 << ", " << t2 << std::endl;*/
+		shader.use();
+		if (t1 && t2)
 		{
 			shader.SetVec4("color", glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
 		}
@@ -121,9 +143,8 @@ int main()
 			shader.SetVec4("color", glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
 		}
 
-		glm::vec3 test = line.m_CollisionPos + line.m_Position + line.GetCollisionLengths();
-		std::cout << line.m_CollisionPos.x + line.m_Position.x << ", " << line.m_CollisionPos.y + line.m_Position.y << ", " << line.m_CollisionPos.z << std::endl;
-		std::cout << test.x << ", " << test.y << ", " << test.z << std::endl;
+		std::cout << "TOP: " << line.m_CollisionPosTop.x << ", " << line.m_CollisionPosTop.y << ", " << line.m_CollisionPosTop.z << std::endl;
+		std::cout << "BOTTOM: " << line.m_CollisionPosBottom.x << ", " << line.m_CollisionPosBottom.y << ", " << line.m_CollisionPosBottom.z << std::endl;
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
