@@ -16,8 +16,8 @@ Pawn::Pawn(Model model, glm::vec3 position)
 	//! DEBUGGING
 	//! -------------------------------------------------------------
 	SetCollision(2, 5, 2);
-	m_CollisionPosBottom = m_CollisionPos + m_Position;
-	m_CollisionPosTop = m_CollisionPos + m_Position + GetCollisionLengths();
+	m_CollisionMin = m_CollisionPos + m_Position;
+	m_CollisionMax = m_CollisionPos + m_Position + GetCollisionLengths();
 	//! -------------------------------------------------------------
 
 	glm::mat4 trans = glm::mat4(1.0f);

@@ -23,8 +23,8 @@ public:
 	bool m_UseCollision;
 
 	glm::vec3 m_CollisionPos;
-	glm::vec3 m_CollisionPosTop;
-	glm::vec3 m_CollisionPosBottom;
+	glm::vec3 m_CollisionMax;
+	glm::vec3 m_CollisionMin;
 	Model m_Model;
 
 	glm::vec3 GetCollisionLengths();

@@ -13,8 +13,8 @@ Line::Line(Model model, glm::vec3 position)
 
 	m_Position = position;
 
-	m_CollisionPosBottom = m_CollisionPos + m_Position;
-	m_CollisionPosTop = m_CollisionPos + m_Position + GetCollisionLengths();
+	m_CollisionMin = m_CollisionPos + m_Position;
+	m_CollisionMax = m_CollisionPos + m_Position + GetCollisionLengths();
 
 	m_UseCollision = true;
 }

@@ -134,7 +134,7 @@ int main()
 
 	/*	std::cout << t1 << ", " << t2 << std::endl;*/
 		shader.use();
-		if (t1 && t2)
+		if (t1 || t2)
 		{
 			shader.SetVec4("color", glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
 		}
@@ -143,8 +143,8 @@ int main()
 			shader.SetVec4("color", glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
 		}
 
-		std::cout << "TOP: " << line.m_CollisionPosTop.x << ", " << line.m_CollisionPosTop.y << ", " << line.m_CollisionPosTop.z << std::endl;
-		std::cout << "BOTTOM: " << line.m_CollisionPosBottom.x << ", " << line.m_CollisionPosBottom.y << ", " << line.m_CollisionPosBottom.z << std::endl;
+		std::cout << "TOP: " << line.m_CollisionMax.x << ", " << line.m_CollisionMax.y << ", " << line.m_CollisionMax.z << std::endl;
+		std::cout << "BOTTOM: " << line.m_CollisionMin.x << ", " << line.m_CollisionMin.y << ", " << line.m_CollisionMin.z << std::endl;
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

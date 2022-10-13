@@ -1,7 +1,7 @@
 #include "entities/WorldEntity.h"
 
 WorldEntity::WorldEntity()
-	: m_Name(""), m_Position(0.0f), m_Rotation({0.0f, 0.0f, 90.0f}), m_Scale(0.0f), m_IsStatic(false), m_UseCollision(false), m_CollisionLengths(0.0f), m_CollisionPos(0.0f), m_CollisionPosBottom(0.0f), m_CollisionPosTop(0.0f)
+	: m_Name(""), m_Position(0.0f), m_Rotation({0.0f, 0.0f, 90.0f}), m_Scale(0.0f), m_IsStatic(false), m_UseCollision(false), m_CollisionLengths(0.0f), m_CollisionPos(0.0f), m_CollisionMin(0.0f), m_CollisionMax(0.0f)
 {
 
 }

@@ -1,18 +1,12 @@
 #include "collision/Collision.h"
 #include "glm/glm.hpp"
 
-bool Collision::CheckCollision(WorldEntity& entity1, WorldEntity& entity2)
+bool Collision::CheckCollision(WorldEntity& a, WorldEntity& b)
 {
-	bool X = false, Y = false, Z = false;
-
-	if (entity1.m_CollisionPosTop.x >= entity2.m_CollisionPosBottom.x && entity1.m_CollisionPosBottom.x <= entity2.m_CollisionPosTop.x)
-		X = true;
-	if (entity1.m_CollisionPosTop.y >= entity2.m_CollisionPosBottom.y && entity1.m_CollisionPosBottom.y <= entity2.m_CollisionPosTop.y)
-		Y = true;
-	if (entity1.m_CollisionPosTop.z >= entity2.m_CollisionPosBottom.z && entity1.m_CollisionPosBottom.z <= entity2.m_CollisionPosTop.z)
-		Z = true;
-
-	if (X && Y && Z)
-		return true;
-	return false;
+	return a.m_CollisionMin.x <= b.m_CollisionMax.x &&
+		a.m_CollisionMax.x >= b.m_CollisionMin.x &&
+		a.m_CollisionMin.y <= b.m_CollisionMax.y &&
+		a.m_CollisionMax.y >= b.m_CollisionMax.y &&
+		a.m_CollisionMin.z <= b.m_CollisionMax.z &&
+		a.m_CollisionMax.z >= b.m_CollisionMin.z;
 }

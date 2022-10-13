@@ -21,8 +21,8 @@ void Actor::Translate(glm::vec3 translation)
 {
 	//! update position
 	m_Position += translation;
-	m_CollisionPosBottom += translation;
-	m_CollisionPosTop += translation;
+	m_CollisionMin += translation;
+	m_CollisionMax += translation;
 
 
 	//! set translationMatrix to default matrix and translate it by given parameter
@@ -98,15 +98,32 @@ void Actor::RotateCollision()
 	//! Only rotates on z axis...
 	float radian = (m_Rotation.z * 3.14159265359f) / 180.0f;
 
-	m_CollisionPosTop -= m_Position;
-	m_CollisionPosBottom -= m_Position;
+	m_CollisionMax -= m_Position;
+	m_CollisionMin -= m_Position;
 
-	m_CollisionPosTop.x = ((5 * cos(radian)) + (-m_CollisionPosBottom.x)); // calculate X coord from cos
-	m_CollisionPosTop.y = ((5 * sin(radian)) + (-m_CollisionPosBottom.y)); // calculate Y coord form sin
+	m_CollisionMax.x = ((GetCollisionLengths().y * cos(radian)) + (-m_CollisionPos.x)); // calculate X coord from cos
+	m_CollisionMax.y = ((GetCollisionLengths().y * sin(radian)) + (-m_CollisionPos.y)); // calculate Y coord form sin
 
-	m_CollisionPosBottom.x = ((-2 * cos(radian)) + m_CollisionPosBottom.x); // calculate X coord from cos
-	m_CollisionPosBottom.y = ((-2 * sin(radian)) + m_CollisionPosBottom.y); // calculate Y coord form sin
+	m_CollisionMin.x = (((-GetCollisionLengths().x)* cos(radian)) + m_CollisionPos.x); // calculate X coord from cos
+	m_CollisionMin.y = (((-GetCollisionLengths().x) * sin(radian)) + m_CollisionPos.y); // calculate Y coord form sin
 
-	m_CollisionPosTop += m_Position;
-	m_CollisionPosBottom += m_Position;
+	m_CollisionPos.x = (((-GetCollisionLengths().x) * cos(radian)) + m_CollisionPos.x); // calculate X coord from cos
+	m_CollisionPos.y = (((-GetCollisionLengths().x) * sin(radian)) + m_CollisionPos.y); // calculate Y coord form sin
+
+	m_CollisionMax += m_Position;
+	m_CollisionMin += m_Position;
+
+	if (m_CollisionMin.x > m_CollisionMax.x )
+	{
+		float temp = m_CollisionMax.x;
+		m_CollisionMax.x = m_CollisionMin.x;
+		m_CollisionMin.x = temp;
+	}
+
+	if (m_CollisionMin.y > m_CollisionMax.y)
+	{
+		float temp = m_CollisionMax.y;
+		m_CollisionMax.y = m_CollisionMin.y;
+		m_CollisionMin.y = temp;
+	}
 }
