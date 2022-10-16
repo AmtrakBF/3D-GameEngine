@@ -4,19 +4,9 @@
 
 #include "events/EventSystem.h"
 
-#include <iostream>
-
 Line::Line(Model model, glm::vec3 position)
+	: Actor(model, position)
 {
-	AttachModel(model, GL_DYNAMIC_DRAW);
-	SetCollision(2, 5, 2);
-
-	m_Position = position;
-
-	m_CollisionMin = m_CollisionPos + m_Position;
-	m_CollisionMax = m_CollisionPos + m_Position + GetCollisionLengths();
-	m_CollisionCenter += m_CollisionMin;
-
 	m_UseCollision = true;
 }
 
@@ -90,21 +80,29 @@ void Line::RotateCollision()
 	//! Only rotates on z axis...
 	float radian = (m_Rotation.z * 3.14159265359f) / 180.0f;
 
+	//! Set position to origin 
 	m_CollisionMax -= m_Position;
 	m_CollisionMin -= m_Position;
 
-	m_CollisionMax.x = ((GetCollisionLengths().y * cos(radian)) + (-m_CollisionPos.x)); // calculate X coord from cos
-	m_CollisionMax.y = ((GetCollisionLengths().y * sin(radian)) + (-m_CollisionPos.y)); // calculate Y coord form sin
+	//! Objects default transform width * cos(degree to rotate in radians) + opposite(CollisionPosition.x)
+	m_CollisionMax.x = glm::round(((5 * cos(radian)) + (-m_CollisionPos.x))); 
+	//! Objects default transform width * sin(degree to rotate in radians) + opposite(CollisionPosition.y)
+	m_CollisionMax.y = glm::round(((5 * sin(radian)) + (-m_CollisionPos.y)));
 
-	m_CollisionMin.x = (((-GetCollisionLengths().x) * cos(radian)) + m_CollisionPos.x); // calculate X coord from cos
-	m_CollisionMin.y = (((-GetCollisionLengths().x) * sin(radian)) + m_CollisionPos.y); // calculate Y coord form sin
+	//! Objects default transform opposite(Height) * cos(degree to rotate in radians) + CollisionPosition.y
+	m_CollisionMin.x = glm::round((((-2) * cos(radian)) + m_CollisionPos.x));
+	//! Objects default transform opposite(Height) * sin(degree to rotate in radians) + CollisionPosition.y
+	m_CollisionMin.y = glm::round((((-2) * sin(radian)) + m_CollisionPos.y));
 
-	m_CollisionPos.x = (((-GetCollisionLengths().x) * cos(radian)) + m_CollisionPos.x); // calculate X coord from cos
-	m_CollisionPos.y = (((-GetCollisionLengths().x) * sin(radian)) + m_CollisionPos.y); // calculate Y coord form sin
+	//! Rotates the collision position for proper alignment of Min and Max 
+	m_CollisionPos.x = glm::round((((-2) * cos(radian)) + m_CollisionPos.x));
+	m_CollisionPos.y = glm::round((((-2) * sin(radian)) + m_CollisionPos.y));
 
-	m_CollisionMax += m_Position;
-	m_CollisionMin += m_Position;
+	//! Max is always top right
+	//! Min is always bottom left
 
+	//! if Min.x is > Max.x
+	//! Swap around so the Max is actually the Max
 	if (m_CollisionMin.x > m_CollisionMax.x)
 	{
 		float temp = m_CollisionMax.x;
@@ -112,6 +110,8 @@ void Line::RotateCollision()
 		m_CollisionMin.x = temp;
 	}
 
+	//! if Min.y is > Max.y
+	//! Swap around so the Max is actually the Max
 	if (m_CollisionMin.y > m_CollisionMax.y)
 	{
 		float temp = m_CollisionMax.y;
@@ -119,11 +119,18 @@ void Line::RotateCollision()
 		m_CollisionMin.y = temp;
 	}
 
-	glm::vec3 Lengths = { (m_CollisionMax.x + m_CollisionMin.x) / 2, (m_CollisionMax.y + m_CollisionMin.y) / 2, (m_CollisionMax.z + m_CollisionMin.z) / 2 };
-	//Lengths -= m_Position;
-	m_CollisionCenter = Lengths;
+	//! Calculate new collision lengths with rotation
+	m_CollisionLengths =  glm::vec3(abs(m_CollisionMax.x) + abs(m_CollisionMin.x), abs(m_CollisionMax.y) + abs(m_CollisionMin.y), abs(m_CollisionMax.z) + abs(m_CollisionMin.z));
+
+	//! Set position back to position
+	m_CollisionMax += m_Position;
+	m_CollisionMin += m_Position;
+
+	//! Calculate center of collision
+	m_CollisionCenter = { (m_CollisionMax.x + m_CollisionMin.x) / 2, (m_CollisionMax.y + m_CollisionMin.y) / 2, (m_CollisionMax.z + m_CollisionMin.z) / 2 };
 }
 
+#include <iostream>
 
 /*
 * // In the future I will add collisionEvent
@@ -132,13 +139,15 @@ void Line::RotateCollision()
 */
 void Line::HandleEvent(Event* event)
 {
-	WorldEntity* entity = (WorldEntity*)event->Paramater();
+	WorldEntity* entity = static_cast<WorldEntity*>(event->Paramater());
+	//WorldEntity* entity = (WorldEntity*)event->Paramater();
 
 	if (entity)
 	{
 		// figure out way to go back to position before
 		m_Model.shader->use();
 		m_Model.shader->SetVec4("color", glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+		entity->Delete();
 		//Translate({ -1.0f, -1.0f, 0.0f });
 	}
 }

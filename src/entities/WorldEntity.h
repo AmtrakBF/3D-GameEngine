@@ -16,7 +16,6 @@ protected:
 
 public:
 	WorldEntity();
-	WorldEntity(void* entity);
 
 	std::string m_Name;
 	glm::vec3 m_Position;
@@ -33,9 +32,12 @@ public:
 	glm::vec3 m_CollisionMin;
 	Model m_Model;
 
-	glm::vec3 GetCollisionLengths();
+
+	void Delete();
 
 	void AttachModel(Model& model, GLenum drawType);
 	void SetCollision(float widthX, float heightY, float lengthZ);
+
 	uint32_t GetId();
+	glm::vec3 GetCollisionDimensions();
 };

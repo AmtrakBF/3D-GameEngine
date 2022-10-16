@@ -1,13 +1,7 @@
 #pragma once
 #include "entities/WorldEntity.h"
 
-struct BoxCollision
-{
-	glm::vec3 TopLeft;
-	glm::vec3 TopRight;
-	glm::vec3 BottomLeft;
-	glm::vec3 BottomRight;
-};
+//! Need to make this a singleton instance
 
 class Collision
 {
@@ -17,6 +11,7 @@ public:
 
 	static void UpdateCollisions();
 	static void Rotate2DCollision(WorldEntity& entity1);
+	//static void RotateCollision();
 
 private:
 };

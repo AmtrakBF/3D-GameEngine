@@ -3,19 +3,19 @@
 
 WorldEntity::WorldEntity()
 	: m_Name(""), m_Position(0.0f), m_Rotation({0.0f, 0.0f, 90.0f}), m_Scale(0.0f), m_IsStatic(false), m_UseCollision(false), m_CollisionLengths(0.0f), 
-	m_CollisionPos(0.0f), m_CollisionMin(0.0f), m_CollisionMax(0.0f), m_Id(0.0f), m_CollisionCenter(0.0f)
+	m_CollisionPos(0.0f), m_CollisionMin(0.0f), m_CollisionMax(0.0f), m_Id(0), m_CollisionCenter(0.0f)
 {
 
 }
 
-WorldEntity::WorldEntity(void* entity)
-{
-
-}
-
-glm::vec3 WorldEntity::GetCollisionLengths()
+glm::vec3 WorldEntity::GetCollisionDimensions()
 {
 	return m_CollisionLengths;
+}
+
+void WorldEntity::Delete()
+{
+
 }
 
 void WorldEntity::AttachModel(Model& model, GLenum drawType)

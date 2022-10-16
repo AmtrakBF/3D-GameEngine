@@ -17,7 +17,7 @@ Pawn::Pawn(Model model, glm::vec3 position)
 	//! -------------------------------------------------------------
 	SetCollision(2, 5, 2);
 	m_CollisionMin = m_CollisionPos + m_Position;
-	m_CollisionMax = m_CollisionPos + m_Position + GetCollisionLengths();
+	m_CollisionMax = m_CollisionPos + m_Position + GetCollisionDimensions();
 	m_CollisionCenter += m_CollisionMin;
 	//! -------------------------------------------------------------
 

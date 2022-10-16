@@ -12,6 +12,17 @@ Actor::Actor(Model model, glm::vec3 position)
 	AttachModel(model, GL_DYNAMIC_DRAW);
 	EventSystem::Instance()->RegisterClient("Collision", this);
 	Renderer::Actors.push_back(this);
+
+	//! --------------------------------------------------
+	//! DEBUG
+	SetCollision(2, 5, 2);
+	//! --------------------------------------------------	
+
+	m_Position = position;
+	m_CollisionMin = m_CollisionPos + m_Position;
+	m_CollisionMax = m_CollisionPos + m_Position + GetCollisionDimensions();
+	m_CollisionCenter += m_CollisionMin;
+
 }
 
 Actor::Actor()
@@ -106,15 +117,20 @@ std::vector<WorldEntity*> Actor::GetNearbyObjects(glm::vec3 distance)
 		if (i->GetId() == m_Id)
 			continue;
 
+		//! Get distance between two normalized positions
 		glm::vec3 totalDistance = glm::abs(i->m_CollisionCenter - m_CollisionCenter);
 
-		glm::vec3 iDimensions = i->GetCollisionLengths();
-		glm::vec3 thisDimensions = GetCollisionLengths();
+		//! Get CollisionDimensions
+		glm::vec3 iDimensions = i->GetCollisionDimensions();
+		glm::vec3 thisDimensions = GetCollisionDimensions();
 
+		//! We are calculating the difference from CollisionCenter and half the size of the CollisionBox
+		//!! Once we know that, we can then get the actual distance from Wall to Wall, not Center to Center
 		totalDistance.x -= (iDimensions.x/2) + (thisDimensions.x/2);
 		totalDistance.y -= (iDimensions.y/2) + (thisDimensions.y/2);
 		totalDistance.z -= (iDimensions.z/2) + (thisDimensions.z/2);
 
+		//! Check if all dimensions are within bounds of distance
 		if (totalDistance.x <= distance.x && totalDistance.y <= distance.y && totalDistance.z <= distance.z)
 			nearby.push_back(i);
 	}
