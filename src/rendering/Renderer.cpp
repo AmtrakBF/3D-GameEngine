@@ -1,5 +1,16 @@
 #include "Renderer.h"
 
+std::list<WorldEntity*> Renderer::Entities;
+std::list<Actor*> Renderer::Actors;
+
+uint32_t Renderer::SetId()
+{
+	m_EntityId++;
+	return m_EntityId;
+}
+
+uint32_t Renderer::m_EntityId = -1;
+
 void Renderer::Draw(VertexArray& VAO, Shader& shader)
 {
 	VAO.Bind();
@@ -8,30 +19,46 @@ void Renderer::Draw(VertexArray& VAO, Shader& shader)
 	VAO.Unbind();
 }
 
-void Renderer::Draw(Model& model)
+void Renderer::Draw(Model* model)
 {
-	model.VAO.Bind();
-	model.shader->use();
+	if (!model)
+		throw "ERROR::RENDERER::MODEL::UNDEFINED MODEL";
 
-	if (model.useIndexArray)
-		glDrawElements(GL_TRIANGLES, model.EBO.GetCount(), GL_UNSIGNED_INT, 0);
+	model->VAO.Bind();
+	model->shader->use();
+
+	if (model->useIndexArray)
+		glDrawElements(GL_TRIANGLES, model->EBO.GetCount(), GL_UNSIGNED_INT, 0);
 	else
-		glDrawArrays(GL_TRIANGLES, 0, (uint32_t)model.vertices.size());
-	model.VAO.Unbind();
+		glDrawArrays(GL_TRIANGLES, 0, (uint32_t)model->vertices.size());
+	model->VAO.Unbind();
 }
 
-void Renderer::Draw(WorldEntity& entity)
+void Renderer::Draw(WorldEntity* entity)
 {
-	entity.m_Model.VAO.Bind();
-	entity.m_Model.shader->use();
-	glDrawArrays(GL_TRIANGLES, 0, (uint32_t)entity.m_Model.vertices.size());
-	entity.m_Model.VAO.Unbind();
+	if (!entity)
+		return;
+
+	entity->m_Model.VAO.Bind();
+	entity->m_Model.shader->use();
+	glDrawArrays(GL_TRIANGLES, 0, (uint32_t)entity->m_Model.vertices.size());
+	entity->m_Model.VAO.Unbind();
 }
 
-void Renderer::Draw(std::vector<WorldEntity>& Entities)
+void Renderer::Draw(std::vector<WorldEntity*>& Entities)
 {
 	for (int x = 0; x < Entities.size(); x++)
-		Draw(Entities[x].m_Model);
+	{
+		Draw(Entities[x]);
+	}
+
+}
+
+void Renderer::Draw()
+{
+	for (auto const& i : Entities) {
+		Draw(i);
+	}
 }
 
 void Renderer::Clear()

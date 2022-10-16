@@ -86,16 +86,18 @@ int main()
 
 	// -------------------------------------------------------------------
 	// MODELS
-	std::vector<WorldEntity> Entities;
+
 
 	Model cube("res/objects/rectangle.obj", shader);
 	cube.InitVertexArray(GL_STATIC_DRAW);
 	Line line(cube);
-	EventSystem::Instance()->RegisterClient("test", &line);
-	Entities.push_back(line);
 
  	Pawn staticLine(cube, { 3.0f, 0.0f, 0.0f });
- 	Entities.push_back(staticLine);
+	Pawn staticLine1(cube, { 8.0f, 0.0f, 0.0f });
+	Pawn staticLine2(cube, { 0.0f, 8.0f, 0.0f });
+	Pawn staticLine3(cube, { -7.0f, 0.0f, 0.0f });
+	Pawn staticLine4(cube, { 3.0f, -8.0f, 0.0f });
+	Pawn staticLine5(cube, { 0.0f, 0.0f, -5.0f });
 
 	Circle circle({0.0f, 0.0f, 0.0f}, 4, 12, shaderCircle);
 
@@ -110,6 +112,7 @@ int main()
 		World::OnUpdate();
 		camera.OnUpdate(World::DeltaTime());
 		Renderer::Clear();
+		Collision::UpdateCollisions();
 
 		shader.use();
 		view = camera.GetView(); // position, target, and up -- no need to calculate right and above
@@ -119,32 +122,25 @@ int main()
 		shader.SetMat4("projection", projection);
 
 		line.GetInput(window);
-		//renderer.Draw(Entities);
-		Renderer::Draw(staticLine.m_Model);
-		Renderer::Draw(line.m_Model);
+		Renderer::Draw();
+
+		line.GetNearbyObjects(glm::vec3{ 1.0f });
 
 		shaderCircle.use();
 		shaderCircle.SetMat4("view", view);
 		shaderCircle.SetMat4("projection", projection);
 
-		Renderer::Draw(circle);
-
-		bool t1 = Collision::CheckCollision(line, staticLine);
-		bool t2 = Collision::CheckCollision(staticLine, line);
+		//Renderer::Draw(circle);
 
 	/*	std::cout << t1 << ", " << t2 << std::endl;*/
 		shader.use();
-		if (t1 || t2)
-		{
-			shader.SetVec4("color", glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
-		}
-		else
-		{
-			shader.SetVec4("color", glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
-		}
+		shader.SetVec4("color", glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
 
-		std::cout << "TOP: " << line.m_CollisionMax.x << ", " << line.m_CollisionMax.y << ", " << line.m_CollisionMax.z << std::endl;
-		std::cout << "BOTTOM: " << line.m_CollisionMin.x << ", " << line.m_CollisionMin.y << ", " << line.m_CollisionMin.z << std::endl;
+ 		std::cout << "TOP: " << line.m_CollisionMax.x << ", " << line.m_CollisionMax.y << ", " << line.m_CollisionMax.z << std::endl;
+ 		std::cout << "BOTTOM: " << line.m_CollisionMin.x << ", " << line.m_CollisionMin.y << ", " << line.m_CollisionMin.z << std::endl;
+		std::cout << "LINE CENTER: " << line.m_CollisionCenter.x << ", " << line.m_CollisionCenter.y << ", " << line.m_CollisionCenter.z << std::endl;
+
+// 		std::cout << "POS: " << line.m_Position.x << ", " << line.m_Position.y << ", " << line.m_Position.z << std::endl;
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

@@ -12,6 +12,7 @@ public:
 private:
 	void MoveModel(glm::vec3 location);
 	void RotateModel(float rotation, glm::vec3 axis);
+	void RotateCollision();
 	void HandleEvent(Event* event) override;
 
 	float m_InputTimer = 0.0f;

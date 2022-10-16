@@ -54,7 +54,7 @@ void EventSystem::RegisterClient(EVENTID event, Listener* client)
 		return;
 
 	//! Insert client into the database
-	database.insert(make_pair(event, client));
+	database.insert(std::make_pair(event, client));
 }
 
 void EventSystem::UnregisterClient(EVENTID event, Listener* client)

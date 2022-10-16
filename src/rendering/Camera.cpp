@@ -46,15 +46,15 @@ void Camera::mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	if (firstMouse) // initially set to true
 	{
-		lastX = xpos;
-		lastY = ypos;
+		lastX = (float)xpos;
+		lastY = (float)ypos;
 		firstMouse = false;
 	}
 
-	float xOffset = xpos - lastX;
-	float yOffset = ypos - lastY;
-	lastX = xpos;
-	lastY = ypos;
+	float xOffset = (float)xpos - lastX;
+	float yOffset = (float)ypos - lastY;
+	lastX = (float)xpos;
+	lastY = (float)ypos;
 
 	const float sensitivity = 0.1f;
 	xOffset *= sensitivity;

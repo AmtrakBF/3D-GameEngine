@@ -1,7 +1,6 @@
 #include "circle.h"
 
 #include <math.h>
-#include <iostream>
 
 Circle::Circle(glm::vec3 position, int radius, int angleIncrement, Shader& inShader)
 	: position(position), radius(radius), angleIncrement(angleIncrement)
@@ -51,8 +50,6 @@ void Circle::GenerateCircle()
 		y = ((radius * sin(radian)) + position.y); // calculate Y coord form sin
 
 		vertices.push_back({ {x, y, 0.0f }, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}});
-
-		std::cout << "Vertices: " << x << ", " << y << std::endl;
 	}
 }
 
@@ -77,7 +74,6 @@ void Circle::GenerateTriangleIndices()
 			index.y = previous;
 			index.z = ++previous;
 		}
-		std::cout << index.x << ", " << index.y << ", " << index.z << std::endl;
 
 		indices.push_back(index);
 		x++;

@@ -3,17 +3,22 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-#include <iostream>
+#include "rendering/Renderer.h"
+#include "events/EventSystem.h"
 
 Actor::Actor(Model model, glm::vec3 position)
 	: m_TranslationMatrix(glm::mat4(1.0f)), m_ViewMatrix(glm::mat4(1.0f)), m_ProjectionMatrix(glm::mat4(1.0f))
 {
 	AttachModel(model, GL_DYNAMIC_DRAW);
+	EventSystem::Instance()->RegisterClient("Collision", this);
+	Renderer::Actors.push_back(this);
 }
 
 Actor::Actor()
 	: m_TranslationMatrix(glm::mat4(1.0f)), m_ViewMatrix(glm::mat4(1.0f)), m_ProjectionMatrix(glm::mat4(1.0f))
 {
+	EventSystem::Instance()->RegisterClient("Collision", this);
+	Renderer::Actors.push_back(this);
 }
 
 //! translates the object on CPU side
@@ -23,6 +28,7 @@ void Actor::Translate(glm::vec3 translation)
 	m_Position += translation;
 	m_CollisionMin += translation;
 	m_CollisionMax += translation;
+	m_CollisionCenter += translation;
 
 
 	//! set translationMatrix to default matrix and translate it by given parameter
@@ -65,8 +71,6 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis)
 	//! translate back to previous location and apply new vertex data to GPU buffer
 	Translate(pos);
 	m_Model.VBO.UpdateBuffer(&m_Model.vertices[0], m_Model.GetSizeInBytes());
-
-	RotateCollision();
 }
 
 //! scales the object on CPU side
@@ -93,37 +97,27 @@ void Actor::Scale(glm::vec3 scale)
 	m_Model.VBO.UpdateBuffer(&m_Model.vertices[0], m_Model.GetSizeInBytes());
 }
 
-void Actor::RotateCollision()
+std::vector<WorldEntity*> Actor::GetNearbyObjects(glm::vec3 distance)
 {
-	//! Only rotates on z axis...
-	float radian = (m_Rotation.z * 3.14159265359f) / 180.0f;
-
-	m_CollisionMax -= m_Position;
-	m_CollisionMin -= m_Position;
-
-	m_CollisionMax.x = ((GetCollisionLengths().y * cos(radian)) + (-m_CollisionPos.x)); // calculate X coord from cos
-	m_CollisionMax.y = ((GetCollisionLengths().y * sin(radian)) + (-m_CollisionPos.y)); // calculate Y coord form sin
-
-	m_CollisionMin.x = (((-GetCollisionLengths().x)* cos(radian)) + m_CollisionPos.x); // calculate X coord from cos
-	m_CollisionMin.y = (((-GetCollisionLengths().x) * sin(radian)) + m_CollisionPos.y); // calculate Y coord form sin
-
-	m_CollisionPos.x = (((-GetCollisionLengths().x) * cos(radian)) + m_CollisionPos.x); // calculate X coord from cos
-	m_CollisionPos.y = (((-GetCollisionLengths().x) * sin(radian)) + m_CollisionPos.y); // calculate Y coord form sin
-
-	m_CollisionMax += m_Position;
-	m_CollisionMin += m_Position;
-
-	if (m_CollisionMin.x > m_CollisionMax.x )
+	std::vector<WorldEntity*> nearby;
+	for (const auto i : Renderer::Entities)
 	{
-		float temp = m_CollisionMax.x;
-		m_CollisionMax.x = m_CollisionMin.x;
-		m_CollisionMin.x = temp;
+		// Continue iteration if this object is "i"
+		if (i->GetId() == m_Id)
+			continue;
+
+		glm::vec3 totalDistance = glm::abs(i->m_CollisionCenter - m_CollisionCenter);
+
+		glm::vec3 iDimensions = i->GetCollisionLengths();
+		glm::vec3 thisDimensions = GetCollisionLengths();
+
+		totalDistance.x -= (iDimensions.x/2) + (thisDimensions.x/2);
+		totalDistance.y -= (iDimensions.y/2) + (thisDimensions.y/2);
+		totalDistance.z -= (iDimensions.z/2) + (thisDimensions.z/2);
+
+		if (totalDistance.x <= distance.x && totalDistance.y <= distance.y && totalDistance.z <= distance.z)
+			nearby.push_back(i);
 	}
 
-	if (m_CollisionMin.y > m_CollisionMax.y)
-	{
-		float temp = m_CollisionMax.y;
-		m_CollisionMax.y = m_CollisionMin.y;
-		m_CollisionMin.y = temp;
-	}
+	return nearby;
 }

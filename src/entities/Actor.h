@@ -14,7 +14,7 @@ public:
 	void Rotate(float degrees, glm::vec3 rotationAxis);
 	void Scale(glm::vec3 scale);
 
-	void RotateCollision();
+	std::vector<WorldEntity*> GetNearbyObjects(glm::vec3 distance);
 
 private:
 	glm::mat4 m_TranslationMatrix, m_ViewMatrix, m_ProjectionMatrix;
