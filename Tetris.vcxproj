@@ -141,6 +141,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\collision\Collision.cpp" />
+    <ClCompile Include="src\collision\CollisionBox.cpp" />
     <ClCompile Include="src\entities\Actor.cpp" />
     <ClCompile Include="src\entities\Circle.cpp" />
     <ClCompile Include="src\players\Line.cpp" />
@@ -159,6 +160,7 @@
     <ClCompile Include="src\vendor\glm\detail\glm.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\collision\CollisionBox.h" />
     <ClInclude Include="src\entities\Actor.h" />
     <ClInclude Include="src\entities\Circle.h" />
     <ClInclude Include="src\players\Line.h" />

@@ -15,6 +15,7 @@ public:
 	void Scale(glm::vec3 scale);
 
 	std::vector<WorldEntity*> GetNearbyObjects(glm::vec3 distance);
+	glm::vec3 GetDistance(WorldEntity* entity);
 
 private:
 	glm::mat4 m_TranslationMatrix, m_ViewMatrix, m_ProjectionMatrix;

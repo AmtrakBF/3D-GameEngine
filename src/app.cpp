@@ -112,7 +112,7 @@ int main()
 		World::OnUpdate();
 		camera.OnUpdate(World::DeltaTime());
 		Renderer::Clear();
-		Collision::UpdateCollisions();
+		Collision::Instance()->UpdateCollisions();
 
 		shader.use();
 		view = camera.GetView(); // position, target, and up -- no need to calculate right and above
@@ -123,8 +123,6 @@ int main()
 
 		line.GetInput(window);
 		Renderer::Draw();
-
-		line.GetNearbyObjects(glm::vec3{ 1.0f });
 
 		shaderCircle.use();
 		shaderCircle.SetMat4("view", view);
