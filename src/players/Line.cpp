@@ -6,6 +6,8 @@
 
 #include <iostream>
 
+#include "debug/Debug.h"
+
 Line::Line(Model model, glm::vec3 position)
 	: Actor(model, position)
 {
@@ -89,6 +91,9 @@ void Line::HandleEvent(Event* event)
 	{
 		m_Model.shader->use();
 		m_Model.shader->SetVec4("color", glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+
+// 		Debug::Instance()->PRINT(entity->v_CollisionBoxes[0].m_CollisionDirection);
+// 		Debug::Instance()->PRINT(m_Direction);
 
 // 		glm::vec3 distance = GetDistance(entity);
 // 		glm::vec3 translation(0.0f);

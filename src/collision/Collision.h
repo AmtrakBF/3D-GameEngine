@@ -1,5 +1,6 @@
 #pragma once
 #include "entities/WorldEntity.h"
+#include "entities/Actor.h"
 
 //! Need to make this a singleton instance
 
@@ -12,13 +13,14 @@ public:
 
 	static Collision* Instance();
 	void UpdateCollisions();
-	void Rotate2DCollision(WorldEntity& entity1);
+	glm::vec3 UpdateCollision(Actor* actor);
+	glm::vec3 GetCollisionDirection(glm::vec3 direction, CollisionBox* a, CollisionBox* b);
 	const glm::vec3 c_CollisionDistance{ 1.0f };
 
 private:
 	//! Singleton, deny access to constructor/destructor
 	Collision() {}
 	~Collision() {}
-	Collision(const Collision& rhs) {}
-	Collision& operator = (const Collision& rhs) {}
+	Collision(const Collision& collision) {}
+	Collision& operator = (const Collision& collision) {}
 };
