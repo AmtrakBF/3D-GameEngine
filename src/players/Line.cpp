@@ -18,7 +18,7 @@ void Line::GetInput(GLFWwindow* window)
 {
 	PlayerController::GetInput(window);
 
-	if (m_LastKeyPress > 0.2f)
+	if (m_LastKeyPress > 0.1f)
 	{
 		// Left Arrow -- Move Left 1 Unit
 		// ----------------------------------------------------------------
@@ -44,7 +44,12 @@ void Line::GetInput(GLFWwindow* window)
 
 		// DEBUGGING
 		// ----------------------------------------------------------------
-		if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS /*&& m_Position.x < 3*/)
+		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS /*&& m_Position.x < 3*/)
+			MoveModel({ 0.0f, 0.0f, 1.0f });
+		
+		// DEBUGGING
+		// ----------------------------------------------------------------
+		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS /*&& m_Position.x < 3*/)
 			MoveModel({ 0.0f, 0.0f, -1.0f });
 
 		// Space Bar -- Rotate Current Tile
@@ -91,19 +96,6 @@ void Line::HandleEvent(Event* event)
 	{
 		m_Model.shader->use();
 		m_Model.shader->SetVec4("color", glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
-
-// 		Debug::Instance()->PRINT(entity->v_CollisionBoxes[0].m_CollisionDirection);
-// 		Debug::Instance()->PRINT(m_Direction);
-
-// 		glm::vec3 distance = GetDistance(entity);
-// 		glm::vec3 translation(0.0f);
-// 
-// 		distance = (m_Position - entity->m_Position) / entity->GetCollisionDimensions();
-// 
-// 		translation.x = GetDirectionalTranslation(m_Direction.x, Collision::c_CollisionDistance.x, distance.x);
-// 		translation.y = GetDirectionalTranslation(m_Direction.y, Collision::c_CollisionDistance.y, distance.y);
-// 		translation.z = GetDirectionalTranslation(m_Direction.z, Collision::c_CollisionDistance.z, distance.z);
-// 		Translate(translation);
 	}
 }
 
