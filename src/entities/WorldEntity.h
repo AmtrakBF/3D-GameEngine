@@ -5,13 +5,13 @@
 #include <vector>
 
 #include "rendering/Model.h"
+#include "collision/CollisionBox.h"
 
 class WorldEntity
 {
 private:
 
 protected:
-	glm::vec3 m_CollisionLengths;
 	uint32_t m_Id;
 
 public:
@@ -21,23 +21,16 @@ public:
 	glm::vec3 m_Position;
 	glm::vec3 m_Rotation;
 	glm::vec3 m_Scale;
+	glm::vec3 m_Direction;
 
+	bool b_UseCollision;
 
-	bool m_IsStatic;
-	bool m_UseCollision;
-
-	glm::vec3 m_CollisionPos;
-	glm::vec3 m_CollisionCenter;
-	glm::vec3 m_CollisionMax;
-	glm::vec3 m_CollisionMin;
+	std::vector<CollisionBox> v_CollisionBoxes;
 	Model m_Model;
 
 
 	void Delete();
-
 	void AttachModel(Model& model, GLenum drawType);
-	void SetCollision(float widthX, float heightY, float lengthZ);
 
 	uint32_t GetId();
-	glm::vec3 GetCollisionDimensions();
 };

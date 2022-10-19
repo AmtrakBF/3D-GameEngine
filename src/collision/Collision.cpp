@@ -5,16 +5,35 @@
 #include "entities/Actor.h"
 #include "events/EventSystem.h"
 
+#include "debug/Debug.h"
+
+Collision* Collision::Instance()
+{
+	static Collision instance;
+	return &instance;
+}
+
 bool Collision::CheckCollision(WorldEntity* a, WorldEntity* b)
 {
 	if (a && b)
 	{
-		return  a->m_CollisionMin.x <= b->m_CollisionMax.x &&	 // Obj A BottomLeft X is    LESS THAN      Obj B TopRight    X
-				a->m_CollisionMax.x >= b->m_CollisionMin.x &&    // Obj A TopRight   X is    GREATER THAN   Obj B BottomLeft  X
-				a->m_CollisionMin.y <= b->m_CollisionMax.y &&    // Obj A BottomLeft Y is    LESS THAN      Obj B TopRight    Y
-				a->m_CollisionMax.y >= b->m_CollisionMin.y &&    // Obj A TopRight   Y is    GREATER THAN   Obj B BottomRight Y
-				a->m_CollisionMin.z <= b->m_CollisionMax.z &&
-				a->m_CollisionMax.z >= b->m_CollisionMin.z;
+		for (auto& i : a->v_CollisionBoxes)
+		{
+			for (auto& x : b->v_CollisionBoxes)
+			{
+				if (i.CollisionMin().x < x.CollisionMax().x &&	 // Obj A BottomLeft X is    LESS THAN      Obj B TopRight    X
+					i.CollisionMax().x > x.CollisionMin().x &&    // Obj A TopRight   X is    GREATER THAN   Obj B BottomLeft  X
+					i.CollisionMin().y < x.CollisionMax().y &&    // Obj A BottomLeft Y is    LESS THAN      Obj B TopRight    Y
+					i.CollisionMax().y > x.CollisionMin().y &&    // Obj A TopRight   Y is    GREATER THAN   Obj B BottomRight Y
+					i.CollisionMin().z < x.CollisionMax().z &&
+					i.CollisionMax().z > x.CollisionMin().z)
+				{
+					x.m_CollisionDirection = GetCollisionDirection(a->m_Direction ,&i, &x);
+					return true;
+				}
+				x.m_CollisionDirection = glm::vec3(0.0f);
+			}
+		}
 	}
 	
 	return false;
@@ -23,22 +42,58 @@ bool Collision::CheckCollision(WorldEntity* a, WorldEntity* b)
 
 bool Collision::CheckCollision2D(WorldEntity& a, WorldEntity& b)
 {
-	return a.m_CollisionMin.x <= b.m_CollisionMax.x &&
-		a.m_CollisionMax.x >= b.m_CollisionMin.x &&
-		a.m_CollisionMin.y <= b.m_CollisionMax.y &&
-		a.m_CollisionMax.y >= b.m_CollisionMin.y;
+// 	return a.m_CollisionMin.x <= b.m_CollisionMax.x &&
+// 		a.m_CollisionMax.x >= b.m_CollisionMin.x &&
+// 		a.m_CollisionMin.y <= b.m_CollisionMax.y &&
+// 		a.m_CollisionMax.y >= b.m_CollisionMin.y;
+	return true;
 }
 
-void Collision::Rotate2DCollision(WorldEntity& entity1)
+glm::vec3 Collision::GetCollisionDirection(glm::vec3 direction, CollisionBox* a, CollisionBox* b)
 {
+	glm::vec3 outDirection(0.0f);
 
+	if (direction.x != 0.0f)
+	{
+		//! LEFT
+		if (a->CollisionMax().x > b->CollisionMin().x && a->CollisionMin().x < b->CollisionMin().x)
+			outDirection.x = b->CollisionMin().x - a->CollisionMax().x;
+
+		//! RIGHT
+		if (a->CollisionMin().x < b->CollisionMax().x && a->CollisionMax().x > b->CollisionMax().x)
+			outDirection.x = b->CollisionMax().x - a->CollisionMin().x;
+	}
+
+	if (direction.y != 0.0f)
+	{
+		//! TOP
+		if (a->CollisionMin().y < b->CollisionMax().y && a->CollisionMax().y > b->CollisionMax().y)
+			outDirection.y = b->CollisionMax().y - a->CollisionMin().y;
+
+		//! BOTTOM
+		if (a->CollisionMax().y > b->CollisionMin().y && a->CollisionMin().y < b->CollisionMin().y)
+			outDirection.y = b->CollisionMin().y - a->CollisionMax().y;
+	}
+
+	if (direction.z != 0.0f)
+	{
+		//! BACK
+		if (a->CollisionMin().z > b->CollisionMax().z && a->CollisionMax().z < b->CollisionMax().z)
+			outDirection.z = b->CollisionMax().z - a->CollisionMin().z;
+
+		//! FRONT
+		if (a->CollisionMax().z < b->CollisionMin().z && a->CollisionMin().z > b->CollisionMin().z)
+			outDirection.z = b->CollisionMin().z - a->CollisionMax().z;
+	}
+
+	return outDirection;
 }
 
 void Collision::UpdateCollisions()
 {
 	for (const auto i : Renderer::Actors)
 	{
-		std::vector<WorldEntity*> entities = i->GetNearbyObjects(glm::vec3{1.0f});
+		std::vector<WorldEntity*> entities = i->GetNearbyObjects(c_CollisionDistance);
 		for (int x = 0; x < entities.size(); x++)
 		{
 			//! check all nearby entities of the Actor i
@@ -46,8 +101,28 @@ void Collision::UpdateCollisions()
 			{
 				//! if CheckCollision() returns true
 				//! SendEvent of type collision with params of collided object
+				//! Needs to be sent on another thread I believe
 				EventSystem::Instance()->SendEvent("Collision", entities[x]);
 			}
 		}
 	}
+}
+
+glm::vec3 Collision::UpdateCollision(Actor* actor)
+{
+	std::vector<WorldEntity*> entities = actor->GetNearbyObjects(c_CollisionDistance);
+	for (int x = 0; x < entities.size(); x++)
+	{
+		//! check all nearby entities of the Actor i
+		if (CheckCollision(actor, entities[x]))
+		{
+			//! if CheckCollision() returns true
+			//! SendEvent of type collision with params of collided object
+			//! Needs to be sent on another thread I believe
+			EventSystem::Instance()->SendEvent("Collision", entities[x]);
+
+			return entities[x]->v_CollisionBoxes[0].m_CollisionDirection;
+		}
+	}
+	return { 1.0f, 1.0f, 1.0f };
 }

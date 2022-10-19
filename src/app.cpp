@@ -21,6 +21,8 @@
 
 #include "players/Line.h"
 
+#include "debug/Debug.h"
+
 Camera camera((float)800 / 600);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -107,12 +109,11 @@ int main()
 	{
 		camera.ProcessInput(window);
 
-		EventSystem::Instance()->ProcessEvents();
-
 		World::OnUpdate();
 		camera.OnUpdate(World::DeltaTime());
 		Renderer::Clear();
-		Collision::UpdateCollisions();
+		//Collision::Instance()->UpdateCollisions();
+		EventSystem::Instance()->ProcessEvents();
 
 		shader.use();
 		view = camera.GetView(); // position, target, and up -- no need to calculate right and above
@@ -124,23 +125,8 @@ int main()
 		line.GetInput(window);
 		Renderer::Draw();
 
-		line.GetNearbyObjects(glm::vec3{ 1.0f });
-
-		shaderCircle.use();
-		shaderCircle.SetMat4("view", view);
-		shaderCircle.SetMat4("projection", projection);
-
-		//Renderer::Draw(circle);
-
-	/*	std::cout << t1 << ", " << t2 << std::endl;*/
 		shader.use();
-		shader.SetVec4("color", glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
-
-//  		std::cout << "TOP: " << line.m_CollisionMax.x << ", " << line.m_CollisionMax.y << ", " << line.m_CollisionMax.z << std::endl;
-//  		std::cout << "BOTTOM: " << line.m_CollisionMin.x << ", " << line.m_CollisionMin.y << ", " << line.m_CollisionMin.z << std::endl;
-// 		std::cout << "LINE CENTER: " << line.m_CollisionCenter.x << ", " << line.m_CollisionCenter.y << ", " << line.m_CollisionCenter.z << std::endl;
-//  		std::cout << "POS: " << line.m_Position.x << ", " << line.m_Position.y << ", " << line.m_Position.z << std::endl;
-//  		std::cout << "COLLISION LENGTHS: " << line.GetCollisionDimensions().x << ", " << line.GetCollisionDimensions().y << ", " << line.GetCollisionDimensions().z << std::endl;
+		shader.SetVec4("color", glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));	
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

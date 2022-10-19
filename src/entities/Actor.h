@@ -13,8 +13,10 @@ public:
 	void Translate(glm::vec3 translation);
 	void Rotate(float degrees, glm::vec3 rotationAxis);
 	void Scale(glm::vec3 scale);
+	void UpdatePositionData(glm::vec3 translation);
 
 	std::vector<WorldEntity*> GetNearbyObjects(glm::vec3 distance);
+	glm::vec3 GetDistance(WorldEntity* entity);
 
 private:
 	glm::mat4 m_TranslationMatrix, m_ViewMatrix, m_ProjectionMatrix;

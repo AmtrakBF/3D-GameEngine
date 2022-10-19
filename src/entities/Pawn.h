@@ -11,15 +11,8 @@ public:
 Pawn::Pawn(Model model, glm::vec3 position)
 {
 	AttachModel(model, GL_STATIC_DRAW);
-	m_Position = position;
-
-	//! DEBUGGING
-	//! -------------------------------------------------------------
-	SetCollision(2, 5, 2);
-	m_CollisionMin = m_CollisionPos + m_Position;
-	m_CollisionMax = m_CollisionPos + m_Position + GetCollisionDimensions();
-	m_CollisionCenter += m_CollisionMin;
-	//! -------------------------------------------------------------
+	m_Position = position;	
+	v_CollisionBoxes.push_back(CollisionBox{ this, {2, 5, 2} });
 
 	glm::mat4 trans = glm::mat4(1.0f);
 	trans = glm::translate(trans, m_Position);

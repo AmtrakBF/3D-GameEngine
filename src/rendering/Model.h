@@ -21,7 +21,7 @@ protected:
 
 public:
 	Model(const char* src, Shader& shader);
-	Model() : shader(nullptr), vertices(0), modelName(""){};
+	Model() : shader(nullptr), vertices(0), modelName(""), useIndexArray(false) {};
 	Model(const Model& model);
 
 	void LoadModel(const char* src);
