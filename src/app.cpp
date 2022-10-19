@@ -94,21 +94,40 @@ int main()
 	cube.InitVertexArray(GL_STATIC_DRAW);
 	Line line(cube);
 
- 	Pawn staticLine(cube, { 3.0f, 0.0f, 0.0f });
+ 	Pawn staticLine(cube, { 5.0f, 0.0f, 0.0f });
 	Pawn staticLine1(cube, { 8.0f, 0.0f, 0.0f });
 	Pawn staticLine2(cube, { 0.0f, 8.0f, 0.0f });
 	Pawn staticLine3(cube, { -7.0f, 0.0f, 0.0f });
-	Pawn staticLine4(cube, { 3.0f, -8.0f, 0.0f });
+	Pawn staticLine4(cube, { 5.0f, -8.0f, 0.0f });
 	Pawn staticLine5(cube, { 0.0f, 0.0f, -5.0f });
 
 	Circle circle({0.0f, 0.0f, 0.0f}, 4, 12, shaderCircle);
 
 	glEnable(GL_DEPTH_TEST);
 
+
+	double prevTime = 0.0;
+	double currentTime = 0.0;
+	double timeDiff;
+	unsigned int counter = 0;
+
 	while (!glfwWindowShouldClose(window))
 	{
 		camera.ProcessInput(window);
 
+		currentTime = glfwGetTime();
+		timeDiff = currentTime - prevTime;
+		counter++;
+		if (timeDiff >= 1.0f / 30.0)
+		{
+			std::string fps = std::to_string((1.0 / timeDiff) * counter);
+			std::string ms = std::to_string((timeDiff / counter) * 1000);
+			std::string newTitle = fps + " FPS / " + ms + " ms";
+			glfwSetWindowTitle(window, newTitle.c_str());
+			prevTime = currentTime;
+			counter = 0;
+		}
+		
 		World::OnUpdate();
 		camera.OnUpdate(World::DeltaTime());
 		Renderer::Clear();

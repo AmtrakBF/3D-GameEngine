@@ -36,15 +36,11 @@ void Actor::Translate(glm::vec3 translation)
 	//! update position
 	UpdatePositionData(translation);
 	glm::vec3 dir = Collision::Instance()->UpdateCollision(this);
-	Debug::Instance()->PRINT(dir);
-	Debug::Instance()->PRINT(v_CollisionBoxes[0].CollisionMax());
-	Debug::Instance()->PRINT(v_CollisionBoxes[0].CollisionMin());
 
 	if (dir != glm::vec3(1.0f))
 	{
 		UpdatePositionData(dir);
 		translation += dir;
-		Debug::Instance()->PRINT(translation);
 	}
 
 	//! set translationMatrix to default matrix and translate it by given parameter
@@ -76,6 +72,11 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis)
 	Translate(-m_Position);
 	m_TranslationMatrix = glm::mat4(1.0f);
 	m_TranslationMatrix = glm::rotate(m_TranslationMatrix, glm::radians(degrees), rotationAxis);
+
+	for (auto& i : v_CollisionBoxes)
+	{
+		i.Rotate();
+	}
 
 	//! loop through each pair of vertex positions and update with rotation matrix
 	//! make sure normals are corrected for rotation

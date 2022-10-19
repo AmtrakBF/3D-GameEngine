@@ -34,23 +34,23 @@ void Line::GetInput(GLFWwindow* window)
 
 		// DEBUGGING
 		// ----------------------------------------------------------------
-		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS /*&& m_Position.x > -3*/)
+		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS /*&& m_Position.x > -3*/)
 			MoveModel({ 0.0f, 1.0f, 0.0f });
 
 		// DEBUGGING
 		// ----------------------------------------------------------------
-		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS /*&& m_Position.x < 3*/)
+		if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS /*&& m_Position.x < 3*/)
 			MoveModel({ 0.0f, -1.0f, 0.0f });
 
 		// DEBUGGING
 		// ----------------------------------------------------------------
-		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS /*&& m_Position.x < 3*/)
-			MoveModel({ 0.0f, 0.0f, 1.0f });
+		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS /*&& m_Position.x < 3*/)
+			MoveModel({ 0.0f, 0.0f, -1.0f });
 		
 		// DEBUGGING
 		// ----------------------------------------------------------------
-		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS /*&& m_Position.x < 3*/)
-			MoveModel({ 0.0f, 0.0f, -1.0f });
+		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS /*&& m_Position.x < 3*/)
+			MoveModel({ 0.0f, 0.0f, 1.0f });
 
 		// Space Bar -- Rotate Current Tile
 		// ----------------------------------------------------------------
@@ -75,10 +75,6 @@ void Line::MoveModel(glm::vec3 location)
 void Line::RotateModel(float rotation, glm::vec3 axis)
 {
 	Rotate(rotation, axis);
-	for (auto& i : v_CollisionBoxes)
-	{
-		i.Rotate();
-	}
 	m_LastKeyPress = 0;
 }
 
@@ -94,8 +90,8 @@ void Line::HandleEvent(Event* event)
 
 	if (entity)
 	{
-		m_Model.shader->use();
-		m_Model.shader->SetVec4("color", glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+// 		m_Model.shader->use();
+// 		m_Model.shader->SetVec4("color", glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
 	}
 }
 
