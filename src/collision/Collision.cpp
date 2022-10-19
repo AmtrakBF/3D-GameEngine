@@ -25,7 +25,7 @@ bool Collision::CheckCollision(WorldEntity* a, WorldEntity* b)
 					i.CollisionMax().x > x.CollisionMin().x &&    // Obj A TopRight   X is    GREATER THAN   Obj B BottomLeft  X
 					i.CollisionMin().y < x.CollisionMax().y &&    // Obj A BottomLeft Y is    LESS THAN      Obj B TopRight    Y
 					i.CollisionMax().y > x.CollisionMin().y &&    // Obj A TopRight   Y is    GREATER THAN   Obj B BottomRight Y
-					i.CollisionMin().z < x.CollisionMax().z &&
+					i.CollisionMin().z < x.CollisionMax().z &&    // Obj A BottomLeft Z is	  LESS THAN		 OBJ B TopRight    Z
 					i.CollisionMax().z > x.CollisionMin().z)
 				{
 					x.m_CollisionDirection = GetCollisionDirection(a->m_Direction ,&i, &x);
@@ -77,12 +77,12 @@ glm::vec3 Collision::GetCollisionDirection(glm::vec3 direction, CollisionBox* a,
 
 	if (direction.z != 0.0f)
 	{
-		//! BACK
-		if (a->CollisionMin().z > b->CollisionMax().z && a->CollisionMax().z < b->CollisionMax().z)
+		//! FRONT
+		if (a->CollisionMin().z < b->CollisionMax().z && a->CollisionMax().z > b->CollisionMax().z)
 			outDirection.z = b->CollisionMax().z - a->CollisionMin().z;
 
-		//! FRONT
-		if (a->CollisionMax().z < b->CollisionMin().z && a->CollisionMin().z > b->CollisionMin().z)
+		//! BACK
+		if (a->CollisionMax().z > b->CollisionMin().z && a->CollisionMin().z < b->CollisionMin().z)
 			outDirection.z = b->CollisionMin().z - a->CollisionMax().z;
 	}
 
@@ -101,7 +101,6 @@ void Collision::UpdateCollisions()
 			{
 				//! if CheckCollision() returns true
 				//! SendEvent of type collision with params of collided object
-				//! Needs to be sent on another thread I believe
 				EventSystem::Instance()->SendEvent("Collision", entities[x]);
 			}
 		}
@@ -116,11 +115,7 @@ glm::vec3 Collision::UpdateCollision(Actor* actor)
 		//! check all nearby entities of the Actor i
 		if (CheckCollision(actor, entities[x]))
 		{
-			//! if CheckCollision() returns true
-			//! SendEvent of type collision with params of collided object
-			//! Needs to be sent on another thread I believe
 			EventSystem::Instance()->SendEvent("Collision", entities[x]);
-
 			return entities[x]->v_CollisionBoxes[0].m_CollisionDirection;
 		}
 	}
