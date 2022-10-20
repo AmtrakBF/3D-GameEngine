@@ -23,8 +23,6 @@
 
 #include "debug/Debug.h"
 
-Camera camera((float)800 / 600);
-
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
@@ -60,12 +58,13 @@ int main()
 		return -1;
 	}
 
+	Camera::Instance()->SetAspectRatio(glm::vec2(800, 600));
+
 	float lastFrame = 0.0f;
 
 	// -------------------------------------------------------------------
 	// SHADERS
 	Shader shader("res/shaders/vertex.shader", "res/shaders/fragment.shader");
-	Shader shaderCircle("res/shaders/vertex.shader", "res/shaders/fragment.shader");
 	shader.use();
 	shader.SetVec4("color", glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
 
@@ -73,13 +72,14 @@ int main()
 	shader.SetMat4("model", model);
 
 	glm::mat4 view = glm::mat4(1.0f);
-	view = camera.GetView(); // position, target, and up -- no need to calculate right and above
+	view = Camera::Instance()->GetView(); // position, target, and up -- no need to calculate right and above
 	shader.SetMat4("view", view);
 
 	glm::mat4 projection;
 	projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 	shader.SetMat4("projection", projection);
 
+	Shader shaderCircle("res/shaders/vertex.shader", "res/shaders/fragment.shader");
 	shaderCircle.use();
 	shaderCircle.SetVec4("color", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	shaderCircle.SetMat4("model", model);
@@ -89,13 +89,14 @@ int main()
 	// -------------------------------------------------------------------
 	// MODELS
 
-
-	Model cube("res/objects/rectangle.obj", shader);
+	Model test("res/objects/testobj.obj", shader);
+	Model cube("res/objects/Line.obj", shader);
+	Model tangle("res/objects/Rectangle.obj", shader);
 	cube.InitVertexArray(GL_STATIC_DRAW);
 	Line line(cube);
 
- 	Pawn staticLine(cube, { 5.0f, 0.0f, 0.0f });
-	Pawn staticLine1(cube, { 8.0f, 0.0f, 0.0f });
+ 	Pawn staticLine(cube, { 7.0f, 0.0f, 0.0f });
+	Pawn staticLine1(cube, { 12.0f, 0.0f, 0.0f });
 	Pawn staticLine2(cube, { 0.0f, 8.0f, 0.0f });
 	Pawn staticLine3(cube, { -7.0f, 0.0f, 0.0f });
 	Pawn staticLine4(cube, { 5.0f, -8.0f, 0.0f });
@@ -105,7 +106,6 @@ int main()
 
 	glEnable(GL_DEPTH_TEST);
 
-
 	double prevTime = 0.0;
 	double currentTime = 0.0;
 	double timeDiff;
@@ -113,7 +113,7 @@ int main()
 
 	while (!glfwWindowShouldClose(window))
 	{
-		camera.ProcessInput(window);
+		Camera::Instance()->ProcessInput(window);
 
 		currentTime = glfwGetTime();
 		timeDiff = currentTime - prevTime;
@@ -129,16 +129,16 @@ int main()
 		}
 		
 		World::OnUpdate();
-		camera.OnUpdate(World::DeltaTime());
+		Camera::Instance()->OnUpdate();
 		Renderer::Clear();
 		//Collision::Instance()->UpdateCollisions();
 		EventSystem::Instance()->ProcessEvents();
 
 		shader.use();
-		view = camera.GetView(); // position, target, and up -- no need to calculate right and above
+		view = Camera::Instance()->GetView(); // position, target, and up -- no need to calculate right and above
 		shader.SetMat4("view", view);
 
-		projection = glm::perspective(glm::radians(camera.GetFOV()), 800.0f / 600.0f, 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(Camera::Instance()->GetFOV()), 800.0f / 600.0f, 0.1f, 100.0f);
 		shader.SetMat4("projection", projection);
 
 		line.GetInput(window);
@@ -158,12 +158,12 @@ int main()
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	camera.mouse_callback(window, xpos, ypos);
+	Camera::Instance()->mouse_callback(window, xpos, ypos);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	camera.scroll_callback(window, xoffset, yoffset);
+	Camera::Instance()->scroll_callback(window, xoffset, yoffset);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)

@@ -1,30 +1,15 @@
 #include "Camera.h"
 #include "glm/gtc/matrix_transform.hpp"
 
-Camera::Camera(float aspectRatio)
-	: aspectRatio(aspectRatio)
+Camera* Camera::Instance()
 {
-	deltaTime = 0.0f;
-
-	firstMouse = true;
-
-	cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-	cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-	cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
-	cameraSpeed = 2.5f * deltaTime;
-
-	lastX = 400;
-	lastY = 300;
-	yaw = -90.0f;
-	pitch = 0.0f;
-	fov = 45.0f;
+	static Camera camera;
+	return &camera;
 }
 
-void Camera::OnUpdate(float deltaTime)
+void Camera::OnUpdate()
 {
-	this->deltaTime = deltaTime;
-	cameraSpeed = 2.5f * deltaTime;
+	cameraSpeed = 2.5f * World::DeltaTime();
 }
 
 glm::mat4 Camera::GetView()
@@ -40,6 +25,11 @@ float Camera::GetFOV()
 glm::vec3 Camera::GetPosition()
 {
 	return cameraPos;
+}
+
+void Camera::SetAspectRatio(glm::vec2 aspectRatio)
+{
+	this->aspectRatio = aspectRatio.x / aspectRatio.y;
 }
 
 void Camera::mouse_callback(GLFWwindow* window, double xpos, double ypos)

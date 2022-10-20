@@ -2,7 +2,7 @@
 #include "entities/WorldEntity.h"
 
 CollisionBox::CollisionBox(WorldEntity* entity, glm::vec3 dimensions, glm::vec3 position)
-	: entity(entity)
+	: entity(entity), m_CollisionDirection(0.0f), c_OriginCollisionDimensions(dimensions)
 {
 	if (!entity)
 		throw "ERROR::COLLISIONBOX::INSTANTIATION::ENTITY::NULL";
@@ -34,19 +34,19 @@ void CollisionBox::Rotate()
 	m_CollisionMax -= entity->m_Position;
 	m_CollisionMin -= entity->m_Position;
 
-	//! Objects default transform width * cos(rotation in radians) + opposite(CollisionPosition.x)
-	m_CollisionMax.x = glm::round(((5 * cos(radian)) + (-m_CollisionPos.x)));
-	//! Objects default transform width * sin(rotation in radians) + opposite(CollisionPosition.y)
-	m_CollisionMax.y = glm::round(((5 * sin(radian)) + (-m_CollisionPos.y)));
+	//! Objects default transform height * cos(rotation in radians) + opposite(CollisionPosition.x)
+	m_CollisionMax.x = ((c_OriginCollisionDimensions.y * cos(radian)) + (-m_CollisionPos.x));
+	//! Objects default transform height * sin(rotation in radians) + opposite(CollisionPosition.y)
+	m_CollisionMax.y = ((c_OriginCollisionDimensions.y * sin(radian)) + (-m_CollisionPos.y));
 
-	//! Objects default transform opposite(Height) * cos(rotation in radians) + CollisionPosition.y
-	m_CollisionMin.x = glm::round((((-2) * cos(radian)) + m_CollisionPos.x));
-	//! Objects default transform opposite(Height) * sin(rotation in radians) + CollisionPosition.y
-	m_CollisionMin.y = glm::round((((-2) * sin(radian)) + m_CollisionPos.y));
+	//! Objects default transform opposite(width) * cos(rotation in radians) + CollisionPosition.y
+	m_CollisionMin.x = (((-c_OriginCollisionDimensions.x) * cos(radian)) + m_CollisionPos.x);
+	//! Objects default transform opposite(width) * sin(rotation in radians) + CollisionPosition.y
+	m_CollisionMin.y = (((-c_OriginCollisionDimensions.x) * sin(radian)) + m_CollisionPos.y);
 
 	//! Rotates the collision position for proper alignment of Min and Max 
-	m_CollisionPos.x = glm::round((((-2) * cos(radian)) + m_CollisionPos.x));
-	m_CollisionPos.y = glm::round((((-2) * sin(radian)) + m_CollisionPos.y));
+	m_CollisionPos.x = (((-c_OriginCollisionDimensions.x) * cos(radian)) + m_CollisionPos.x);
+	m_CollisionPos.y = (((-c_OriginCollisionDimensions.x) * sin(radian)) + m_CollisionPos.y);
 
 	//! Max is always top right
 	//! Min is always bottom left

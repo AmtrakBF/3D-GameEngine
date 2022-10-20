@@ -25,12 +25,12 @@ void Renderer::Draw(Model* model)
 		throw "ERROR::RENDERER::MODEL::UNDEFINED MODEL";
 
 	model->VAO.Bind();
-	model->shader->use();
+	model->m_Shader->use();
 
-	if (model->useIndexArray)
+	if (model->b_UseIndexArray)
 		glDrawElements(GL_TRIANGLES, model->EBO.GetCount(), GL_UNSIGNED_INT, 0);
 	else
-		glDrawArrays(GL_TRIANGLES, 0, (uint32_t)model->vertices.size());
+		glDrawArrays(GL_TRIANGLES, 0, (uint32_t)model->v_Vertices.size());
 	model->VAO.Unbind();
 }
 
@@ -40,8 +40,8 @@ void Renderer::Draw(WorldEntity* entity)
 		return;
 
 	entity->m_Model.VAO.Bind();
-	entity->m_Model.shader->use();
-	glDrawArrays(GL_TRIANGLES, 0, (uint32_t)entity->m_Model.vertices.size());
+	entity->m_Model.m_Shader->use();
+	glDrawArrays(GL_TRIANGLES, 0, (uint32_t)entity->m_Model.v_Vertices.size());
 	entity->m_Model.VAO.Unbind();
 }
 

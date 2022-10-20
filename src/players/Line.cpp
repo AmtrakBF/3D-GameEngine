@@ -11,7 +11,7 @@
 Line::Line(Model model, glm::vec3 position)
 	: Actor(model, position)
 {
-	b_UseCollision = true;
+	/*b_UseCollision = true;*/
 }
 
 void Line::GetInput(GLFWwindow* window)

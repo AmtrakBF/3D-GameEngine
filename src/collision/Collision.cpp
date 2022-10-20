@@ -2,7 +2,6 @@
 #include "glm/glm.hpp"
 
 #include "rendering/Renderer.h"
-#include "entities/Actor.h"
 #include "events/EventSystem.h"
 
 #include "debug/Debug.h"
@@ -53,34 +52,39 @@ glm::vec3 Collision::GetCollisionDirection(glm::vec3 direction, CollisionBox* a,
 {
 	glm::vec3 outDirection(0.0f);
 
-	if (direction.x != 0.0f)
+	if (direction.x > 0.0f)
 	{
 		//! LEFT
 		if (a->CollisionMax().x > b->CollisionMin().x && a->CollisionMin().x < b->CollisionMin().x)
 			outDirection.x = b->CollisionMin().x - a->CollisionMax().x;
-
+	}
+	if (direction.x < 0.0f)
+	{
 		//! RIGHT
 		if (a->CollisionMin().x < b->CollisionMax().x && a->CollisionMax().x > b->CollisionMax().x)
 			outDirection.x = b->CollisionMax().x - a->CollisionMin().x;
 	}
-
-	if (direction.y != 0.0f)
+	if (direction.y < 0.0f)
 	{
 		//! TOP
 		if (a->CollisionMin().y < b->CollisionMax().y && a->CollisionMax().y > b->CollisionMax().y)
 			outDirection.y = b->CollisionMax().y - a->CollisionMin().y;
-
+	}
+	if (direction.y > 0.0f)
+	{
 		//! BOTTOM
 		if (a->CollisionMax().y > b->CollisionMin().y && a->CollisionMin().y < b->CollisionMin().y)
 			outDirection.y = b->CollisionMin().y - a->CollisionMax().y;
 	}
 
-	if (direction.z != 0.0f)
+	if (direction.z < 0.0f)
 	{
 		//! FRONT
 		if (a->CollisionMin().z < b->CollisionMax().z && a->CollisionMax().z > b->CollisionMax().z)
 			outDirection.z = b->CollisionMax().z - a->CollisionMin().z;
-
+	}
+	if (direction.z > 0.0f)
+	{
 		//! BACK
 		if (a->CollisionMax().z > b->CollisionMin().z && a->CollisionMin().z < b->CollisionMin().z)
 			outDirection.z = b->CollisionMin().z - a->CollisionMax().z;
@@ -93,11 +97,14 @@ void Collision::UpdateCollisions()
 {
 	for (const auto i : Renderer::Actors)
 	{
+		if (!i->b_UseCollision)
+			continue;
+
 		std::vector<WorldEntity*> entities = i->GetNearbyObjects(c_CollisionDistance);
 		for (int x = 0; x < entities.size(); x++)
 		{
 			//! check all nearby entities of the Actor i
-			if (CheckCollision(i, entities[x]))
+			if (entities[x]->b_UseCollision && CheckCollision(i, entities[x]))
 			{
 				//! if CheckCollision() returns true
 				//! SendEvent of type collision with params of collided object
@@ -109,11 +116,14 @@ void Collision::UpdateCollisions()
 
 glm::vec3 Collision::UpdateCollision(Actor* actor)
 {
+	if (!actor->b_UseCollision)
+		return { 1.0f, 1.0f, 1.0f };
+
 	std::vector<WorldEntity*> entities = actor->GetNearbyObjects(c_CollisionDistance);
 	for (int x = 0; x < entities.size(); x++)
 	{
 		//! check all nearby entities of the Actor i
-		if (CheckCollision(actor, entities[x]))
+		if (entities[x]->b_UseCollision && CheckCollision(actor, entities[x]))
 		{
 			EventSystem::Instance()->SendEvent("Collision", entities[x]);
 			return entities[x]->v_CollisionBoxes[0].m_CollisionDirection;

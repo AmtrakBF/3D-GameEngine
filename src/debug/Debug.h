@@ -1,6 +1,7 @@
 #pragma once
 #include "glm/glm.hpp"
 #include <iostream>
+/*#include "entities/Pawn.h"*/
 
 #define PRINT(value) Output((value), #value)
 #define GET_VARIABLE_NAME(var) (#var)
@@ -8,16 +9,22 @@
 class Debug
 {
 private:
-	Debug() {}
-	~Debug() {}
-	Debug(const Debug& debug) {}
+	Debug() /*: pawn(nullptr), model(nullptr), shader(nullptr)*/ {}
+	~Debug();
+	Debug(const Debug& debug) /*: pawn(nullptr), model(nullptr), shader(nullptr)*/ {}
 	Debug& operator = (const Debug& debug) {}
 
+// 	Pawn* pawn;
+// 	Model* model;
+// 	Shader* shader;
 
 public:
 	static Debug* Instance();
 
 	//! probably a better way to do this rather than just copy and pasting the same code over and over but it works
+
+
+	void DebugCircle(glm::vec3 position, float radius);
 
 	//! Call PRINT #definition to automatically place variable name as title
 	inline void Output(glm::vec3 input, const char* title = "") const { std::cout << title << ": " << input.x << ", " << input.y << ", " << input.z << std::endl; };
