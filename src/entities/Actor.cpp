@@ -10,6 +10,21 @@
 #include <iostream>
 #include "debug/Debug.h"
 
+
+/*
+* 
+* Actors are movable (dynamic) objects in the game 
+* 
+* To achieve this, vertices are calculated on the CPU and then sent over to be GPU
+* 
+* I heard that using GLProgram was slow so I figured instead of making a shader per object, you can move them via CPU
+* Haven't done any benchmarking or anything but I can picture these functions being slower with more vertices
+* 
+* I also haven't done any research into any problems and tried to figure them out on my own. So to better improve this engine
+* in the future, research will be required. Some of the methods used are probably not the fastest but just what I came up with
+* 
+*/
+
 Actor::Actor(Model model, glm::vec3 position)
 	: m_TranslationMatrix(glm::mat4(1.0f)), m_ViewMatrix(glm::mat4(1.0f)), m_ProjectionMatrix(glm::mat4(1.0f))
 {

@@ -16,6 +16,7 @@ public:
 	glm::mat4 GetView();
 	float GetFOV();
 	glm::vec3 GetPosition();
+	void SetPosition(glm::vec3 position);
 
 	void SetAspectRatio(glm::vec2 aspectRatio);
 

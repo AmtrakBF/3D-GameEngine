@@ -59,6 +59,7 @@ int main()
 	}
 
 	Camera::Instance()->SetAspectRatio(glm::vec2(800, 600));
+	Camera::Instance()->SetPosition({ 0.0f, 0.0f, 35.0f });
 
 	float lastFrame = 0.0f;
 

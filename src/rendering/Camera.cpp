@@ -27,6 +27,11 @@ glm::vec3 Camera::GetPosition()
 	return cameraPos;
 }
 
+void Camera::SetPosition(glm::vec3 position)
+{
+	cameraPos = position;
+}
+
 void Camera::SetAspectRatio(glm::vec2 aspectRatio)
 {
 	this->aspectRatio = aspectRatio.x / aspectRatio.y;

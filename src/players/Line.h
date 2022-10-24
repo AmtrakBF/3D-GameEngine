@@ -1,8 +1,9 @@
 #pragma once
 #include "entities/actor.h"
 #include "rendering/Shader.h"
+#include "entities/PlayerController.h"
 
-class Line : public Actor
+class Line : public Actor, public PlayerController
 {
 public:
 	Line(Model model, glm::vec3 position = { 0, 0, 0 });

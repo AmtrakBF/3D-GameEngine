@@ -4,7 +4,7 @@
 #include "rendering/Model.h"
 #include "events/Listener.h"
 
-class Actor : public PlayerController, public WorldEntity, public Listener
+class Actor : public WorldEntity, public Listener
 {
 public:
 	Actor(Model model, glm::vec3 position);
