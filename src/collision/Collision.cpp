@@ -100,7 +100,7 @@ void Collision::UpdateCollisions()
 		if (!i->b_UseCollision)
 			continue;
 
-		std::vector<WorldEntity*> entities = i->GetNearbyObjects(c_CollisionDistance);
+		std::vector<WorldEntity*> entities = i->GetNearbyObjects_CollisionBox(c_CollisionDistance);
 		for (int x = 0; x < entities.size(); x++)
 		{
 			//! check all nearby entities of the Actor i
@@ -119,7 +119,7 @@ glm::vec3 Collision::UpdateCollision(Actor* actor)
 	if (!actor->b_UseCollision)
 		return { 1.0f, 1.0f, 1.0f };
 
-	std::vector<WorldEntity*> entities = actor->GetNearbyObjects(c_CollisionDistance);
+	std::vector<WorldEntity*> entities = actor->GetNearbyObjects_CollisionBox(c_CollisionDistance);
 	for (int x = 0; x < entities.size(); x++)
 	{
 		//! check all nearby entities of the Actor i

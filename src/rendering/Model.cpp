@@ -4,8 +4,10 @@
 #include <fstream>
 #include <sstream>
 
+#include <debug/Debug.h>
+
 Model::Model(const char* src, Shader& shader)
-	: m_Shader(&shader), m_ModelName(""), v_Vertices(0), b_UseIndexArray(false), b_CollisionBox(false)
+	: m_Shader(&shader), m_ModelName(""), v_Vertices(0), b_UseIndexArray(false), b_CollisionBox(false), m_Dimensions(0.0f)
 {
 	LoadModel(src);
 }
@@ -16,6 +18,7 @@ Model::Model(const Model& model)
 	m_ModelName = model.m_ModelName;
 	v_CollisonDimensions = model.v_CollisonDimensions;
 	m_Shader = model.m_Shader;
+	m_Dimensions = model.m_Dimensions;
 	b_UseIndexArray = false;
 	b_CollisionBox = false;
 }
@@ -62,7 +65,7 @@ void Model::LoadModel(const char* src)
 			std::string name;
 			ss >> name;
 
-			if (name != "CollisionBox")
+			if (name.find("CollisionBox") != 0)
 			{
 				b_CollisionBox = false;
 				m_ModelName = name;
@@ -72,10 +75,10 @@ void Model::LoadModel(const char* src)
 				b_CollisionBox = true;
 				if (!collisionIndices.empty() && !collisionVertices.empty())
 				{
-					collisionVertexCount += collisionVertices.size();
-					indexOffset = faceIndices.size() + collisionVertexCount;
+					indexOffset = collisionVertexCount + temp_vertices.size();
 					CreateCollisionBox(collisionVertices, collisionIndices, indexOffset);
-					collisionIndices.clear();
+					collisionVertexCount += collisionVertices.size();
+					collisionVertices.clear();
 					collisionIndices.clear();
 				}
 			}
@@ -147,9 +150,9 @@ void Model::LoadModel(const char* src)
 		}
 	}
 
-	if (!collisionIndices.empty() && !collisionVertices.empty())
+ 	if (!collisionIndices.empty() && !collisionVertices.empty())
 	{
-		indexOffset += collisionVertices.size();
+		indexOffset = collisionVertexCount + temp_vertices.size();
 		CreateCollisionBox(collisionVertices, collisionIndices, indexOffset);
 	}
 
@@ -159,6 +162,8 @@ void Model::LoadModel(const char* src)
 	unsigned int vertexIndex = 0, uvIndex = 0, normIndex = 0;
 	glm::vec3 normal{}, face{};
 	glm::vec2 uv{};
+
+	glm::vec3 max(0.0f), min(0.0f);
 
 	for (int x = 0; x < faceIndices.size(); x++)
 	{
@@ -172,7 +177,17 @@ void Model::LoadModel(const char* src)
 		normal = temp_normals[normIndex - 1];
 
 		v_Vertices.push_back({ face, normal, uv });
+
+		if (face.x > max.x) max.x = face.x;
+		if (face.y > max.y) max.y = face.y;
+		if (face.z > max.z) max.z = face.z;
+
+		if (face.x < min.x) min.x = face.x;
+		if (face.y < min.y) min.y = face.y;
+		if (face.z < min.z) min.z = face.z;
 	}
+
+	m_Dimensions = abs(abs(max) + abs(min));
 	file.close();
 }
 
@@ -198,6 +213,8 @@ uint32_t Model::GetSizeInBytes()
 
 void Model::CreateCollisionBox(const std::vector<glm::vec3>& vertices, const std::vector<uint32_t>& indices, int indexOffset)
 {
+	CollisionBox::CollisionData data;
+
 	glm::vec3 max = vertices[0], min = vertices[0];
 
 	unsigned int vertexIndex = 0;
@@ -223,5 +240,9 @@ void Model::CreateCollisionBox(const std::vector<glm::vec3>& vertices, const std
 		if (newVertices[x].z < min.z) min.z = newVertices[x].z;
 	}
 
-	v_CollisonDimensions.push_back(abs(max) + abs(min));
+	data.max = max;
+	data.min = min;
+	data.dimensions = abs(max) + abs(min);
+
+	v_CollisonDimensions.push_back(data);
 }

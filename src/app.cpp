@@ -89,12 +89,9 @@ int main()
 
 	// -------------------------------------------------------------------
 	// MODELS
-
-	Model test("res/objects/testobj.obj", shader);
 	Model cube("res/objects/Line.obj", shader);
-	Model tangle("res/objects/Rectangle.obj", shader);
-	cube.InitVertexArray(GL_STATIC_DRAW);
-	Line line(cube);
+	Model test("res/objects/Hump.obj", shader);
+	Line line(test);
 
  	Pawn staticLine(cube, { 7.0f, 0.0f, 0.0f });
 	Pawn staticLine1(cube, { 12.0f, 0.0f, 0.0f });

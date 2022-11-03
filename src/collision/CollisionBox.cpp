@@ -1,28 +1,25 @@
 #include "collision/CollisionBox.h"
 #include "entities/WorldEntity.h"
 
-CollisionBox::CollisionBox(WorldEntity* entity, glm::vec3 dimensions, glm::vec3 position)
-	: entity(entity), m_CollisionDirection(0.0f), c_OriginCollisionDimensions(dimensions)
+CollisionBox::CollisionBox(WorldEntity* entity, CollisionData data)
+	: entity(entity), m_CollisionDirection(0.0f), c_OriginCollisionDimensions(data.dimensions)
 {
 	if (!entity)
 		throw "ERROR::COLLISIONBOX::INSTANTIATION::ENTITY::NULL";
 
-	//! Set collision position, defaulted to (-1, -1, 0)
-	m_CollisionPos = position;
-
 	//! Set minimum and maximum collision points 
-	m_CollisionMin = m_CollisionPos + entity->m_Position;
-	m_CollisionMax = m_CollisionPos + entity->m_Position + dimensions;
+	m_CollisionMin = entity->m_Position + data.min;
+	m_CollisionMax = entity->m_Position + data.max;
 
 	//! Center of collision box
-	m_CollisionCenter = { dimensions.x / 2, dimensions.y / 2, dimensions.z / 2 };
+	m_CollisionCenter = { data.dimensions.x / 2, data.dimensions.y / 2, data.dimensions.z / 2 };
 	m_CollisionCenter += m_CollisionMin;
 
 	//! Set collision position, subject to change
-	m_CollisionPos = { -1.0f, -1.0f, 0 };
+	m_CollisionPos = m_CollisionMin;
 
 	//! Set collision dimensions
-	m_CollisionDimensions = dimensions;
+	m_CollisionDimensions = data.dimensions;
 }
 
 void CollisionBox::Rotate()

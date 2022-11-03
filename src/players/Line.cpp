@@ -8,7 +8,7 @@
 
 #include "debug/Debug.h"
 
-Line::Line(Model model, glm::vec3 position)
+Line::Line(Model& model, glm::vec3 position)
 	: Actor(model, position)
 {
 	/*b_UseCollision = true;*/

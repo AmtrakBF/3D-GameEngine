@@ -16,7 +16,9 @@ public:
 	void UpdatePositionData(glm::vec3 translation, bool isRotation);
 
 	std::vector<WorldEntity*> GetNearbyObjects(glm::vec3 distance);
+	std::vector<WorldEntity*> GetNearbyObjects_CollisionBox(glm::vec3 distance);
 	glm::vec3 GetDistance(WorldEntity* entity);
+	glm::vec3 GetCollisionDistance(WorldEntity* entity);
 
 private:
 	glm::mat4 m_TranslationMatrix, m_ViewMatrix, m_ProjectionMatrix;

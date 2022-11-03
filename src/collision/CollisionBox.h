@@ -14,7 +14,13 @@ private:
 	const glm::vec3 c_OriginCollisionDimensions;
 
 public:
-	CollisionBox(WorldEntity* entity, glm::vec3 dimensions, glm::vec3 position = { -1.0f, -1.0f, 0.0f });
+	struct CollisionData
+	{
+		glm::vec3 dimensions;
+		glm::vec3 min, max;
+	};
+
+	CollisionBox(WorldEntity* entity, CollisionData data);
 	~CollisionBox() {}
 
 	glm::vec3 m_CollisionDirection;

@@ -6,7 +6,7 @@
 class Line : public Actor, public PlayerController
 {
 public:
-	Line(Model model, glm::vec3 position = { 0, 0, 0 });
+	Line(Model& model, glm::vec3 position = { 0, 0, 0 });
 
 	virtual void GetInput(GLFWwindow* window) override;
 

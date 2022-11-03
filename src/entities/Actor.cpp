@@ -35,6 +35,7 @@ Actor::Actor(Model model, glm::vec3 position)
 	b_UseCollision = true;
 	m_Position = position;
 
+	//! -------------------------------------------------------------- POSSIBLE OPTIMIZATION -----------------------------------------------------
 	for (const auto& i : m_Model.v_CollisonDimensions)
 	{
 		v_CollisionBoxes.push_back(CollisionBox{ this, i });
@@ -97,10 +98,25 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis)
 	m_TranslationMatrix = glm::mat4(1.0f);
 	m_TranslationMatrix = glm::rotate(m_TranslationMatrix, glm::radians(degrees), rotationAxis);
 
+	//! NEEDS SOME WORK FOR SURE
+	//! ------------------------------------------- DEBUG -------------------------------------------
+	//! Possibly rotating multiple collsions weird, needs to be debuged
+	//! Also need to be able to set rotation origin....
+	//! Rotate all collisions associated with object
 	for (auto& i : v_CollisionBoxes)
 	{
 		i.Rotate();
 	}
+
+	//! Dont understand this note but gonna keep it just in case it makes sense
+	//! okay yeah figured it out. dimensions of x,y,z are staying the same even when rotating
+	//! Could of sworn we did something about that before but ill look into it
+	//! Need to add rotations for Dimensions
+	//! 
+	//! 
+	//! 
+	//! 
+	//! 
 
 	//! loop through each pair of vertex positions and update with rotation matrix
 	//! make sure normals are corrected for rotation
@@ -111,6 +127,7 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis)
 	}
 	//! translate back to previous location and apply new vertex data to GPU buffer
 	Translate(pos);
+
 	m_Model.VBO.UpdateBuffer(&m_Model.v_Vertices[0], m_Model.GetSizeInBytes());
 }
 
@@ -151,8 +168,33 @@ std::vector<WorldEntity*> Actor::GetNearbyObjects(glm::vec3 distance)
 		if (i->GetId() == m_Id)
 			continue;
 
+		//! ------------------------------------------------------------ Optimize by using GetDistance(); -------------------------------------
 		//! Get distance between two entities
-		glm::vec3 totalDistance = GetDistance(i);
+		glm::vec3 totalDistance = GetCollisionDistance(i);
+
+		//! Check if all dimensions are within bounds of distance
+		if (totalDistance.x <= distance.x && totalDistance.y <= distance.y && totalDistance.z <= distance.z)
+			nearby.push_back(i);
+	}
+
+	return nearby;
+}
+
+std::vector<WorldEntity*> Actor::GetNearbyObjects_CollisionBox(glm::vec3 distance)
+{
+	std::vector<WorldEntity*> nearby;
+
+	if (!b_UseCollision)
+		return nearby;
+
+	for (const auto i : Renderer::Entities)
+	{
+		// Continue iteration if this object is "i"
+		if (i->GetId() == m_Id)
+			continue;
+
+		//! Get distance between two entities
+		glm::vec3 totalDistance = GetCollisionDistance(i);
 
 		//! Check if all dimensions are within bounds of distance
 		if (totalDistance.x <= distance.x && totalDistance.y <= distance.y && totalDistance.z <= distance.z)
@@ -164,26 +206,56 @@ std::vector<WorldEntity*> Actor::GetNearbyObjects(glm::vec3 distance)
 
 glm::vec3 Actor::GetDistance(WorldEntity* entity)
 {
-	//! --------------------------------------------------------------- DEBUG -----------------------------------------------
-	//! need to add proper feature to loop through all collisions
-
 	if (!entity->b_UseCollision || !b_UseCollision)
 		return glm::vec3(0.0f);
 
-	glm::vec3 distance = glm::abs(entity->v_CollisionBoxes[0].CollisionCenter() - v_CollisionBoxes[0].CollisionCenter());
+	glm::vec3 center = { m_Model.Dimensions().x / 2, m_Model.Dimensions().y / 2, m_Model.Dimensions().z / 2 };
+	center += m_Position;
+	glm::vec3 entityCenter = { entity->m_Model.Dimensions().x / 2, entity->m_Model.Dimensions().y / 2, entity->m_Model.Dimensions().z / 2 };
+	entityCenter += entity->m_Position;
 
-	//! Get CollisionDimensions
-	glm::vec3 iDimensions = entity->v_CollisionBoxes[0].CollisionDimensions();
-	glm::vec3 thisDimensions = v_CollisionBoxes[0].CollisionDimensions();
+	//! Distance from center to center
+	glm::vec3 distance = glm::abs(entityCenter - center);
 
-	//! We are calculating the difference from CollisionCenter and half the size of the CollisionBox
+	//! We are calculating the difference from the center of model and half the size of the other model
 	//!! Once we know that, we can then get the actual distance from Wall to Wall, not Center to Center
-	distance.x -= (iDimensions.x / 2) + (thisDimensions.x / 2);
-	distance.y -= (iDimensions.y / 2) + (thisDimensions.y / 2);
-	distance.z -= (iDimensions.z / 2) + (thisDimensions.z / 2);
+	distance.x -= (entity->m_Model.Dimensions().x / 2) + (m_Model.Dimensions().x / 2);
+	distance.y -= (entity->m_Model.Dimensions().y / 2) + (m_Model.Dimensions().y / 2);
+	distance.z -= (entity->m_Model.Dimensions().z / 2) + (m_Model.Dimensions().z / 2);
 
 	return distance;
-	return glm::vec3( 0.0f );
+}
+
+glm::vec3 Actor::GetCollisionDistance(WorldEntity* entity)
+{
+	if (!entity->b_UseCollision || !b_UseCollision)
+		return glm::vec3(0.0f);
+
+	glm::vec3 distance(0.0f);
+	glm::vec3 tempDistance(0.0f);
+
+	for (const auto& thisBox : v_CollisionBoxes)
+	{
+		for (const auto& entityBox : entity->v_CollisionBoxes)
+		{
+			tempDistance = glm::abs(entityBox.CollisionCenter() - thisBox.CollisionCenter());
+
+			//! Get CollisionDimensions
+			glm::vec3 iDimensions = entityBox.CollisionDimensions();
+			glm::vec3 thisDimensions = thisBox.CollisionDimensions();
+
+			//! We are calculating the difference from CollisionCenter and half the size of the CollisionBox
+			//!! Once we know that, we can then get the actual distance from Wall to Wall, not Center to Center
+			tempDistance.x -= (iDimensions.x / 2) + (thisDimensions.x / 2);
+			tempDistance.y -= (iDimensions.y / 2) + (thisDimensions.y / 2);
+			tempDistance.z -= (iDimensions.z / 2) + (thisDimensions.z / 2);
+
+			if (tempDistance.x < distance.x && tempDistance.y < distance.y && tempDistance.z < distance.z)
+				distance = tempDistance;
+		}
+	}
+
+	return distance;
 }
 
 void Actor::UpdatePositionData(glm::vec3 translation, bool isRotation)
