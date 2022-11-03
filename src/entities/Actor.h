@@ -24,8 +24,3 @@ private:
 	glm::mat4 m_TranslationMatrix, m_ViewMatrix, m_ProjectionMatrix;
 };
 
-/*
-	needs model to be loaded and controlled
-*/
-
-
