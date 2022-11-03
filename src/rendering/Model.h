@@ -23,7 +23,8 @@ protected:
 
 public:
 	Model(const char* src, Shader& shader);
-	Model() : m_Shader(nullptr), v_Vertices(0), m_ModelName(""), b_UseIndexArray(false), b_CollisionBox(false), m_Dimensions(0.0f) {};
+	Model(Shader* shader, const std::vector<glm::vec3>* vertices, const std::vector<glm::uvec3>* indices = nullptr);
+	Model() : m_Shader(nullptr), v_Vertices(0), m_ModelName(""), b_UseIndexArray(false), b_CollisionBox(false), m_Dimensions(0.0f), b_IsCollision(false) {};
 	Model(const Model& model);
 
 	void LoadModel(const char* src);
@@ -34,13 +35,15 @@ public:
 
 	bool b_UseIndexArray;
 	bool b_CollisionBox;
+	bool b_IsCollision;
 
 	std::vector<CollisionBox::CollisionData> v_CollisonDimensions;
-
 	std::vector<ModelData> v_Vertices;
 	std::vector<glm::uvec3> v_Indices;
+
 	std::string m_ModelName;
 	glm::vec3 m_Dimensions;
+
 	Shader* m_Shader;
 	VertexArray VAO;
 	VertexBuffer VBO;

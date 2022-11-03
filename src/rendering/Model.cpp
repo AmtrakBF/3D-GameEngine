@@ -7,7 +7,7 @@
 #include <debug/Debug.h>
 
 Model::Model(const char* src, Shader& shader)
-	: m_Shader(&shader), m_ModelName(""), v_Vertices(0), b_UseIndexArray(false), b_CollisionBox(false), m_Dimensions(0.0f)
+	: m_Shader(&shader), m_ModelName(""), v_Vertices(0), b_UseIndexArray(false), b_CollisionBox(false), m_Dimensions(0.0f), b_IsCollision(false)
 {
 	LoadModel(src);
 }
@@ -21,6 +21,28 @@ Model::Model(const Model& model)
 	m_Dimensions = model.m_Dimensions;
 	b_UseIndexArray = false;
 	b_CollisionBox = false;
+	b_IsCollision = false;
+}
+
+Model::Model(Shader* shader, const std::vector<glm::vec3>* vertices, const std::vector<glm::uvec3>* indices /*= nullptr*/)
+	: m_Shader(shader), m_ModelName(""), v_Vertices(0), b_UseIndexArray(false), b_CollisionBox(false), m_Dimensions(0.0f), b_IsCollision(true)
+{
+	if (vertices)
+	{
+		for (int x = 0; x < vertices->size(); x++)
+		{
+			v_Vertices.push_back({ (*vertices)[x], {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f} });
+		}
+	}
+
+	if (indices)
+	{
+		b_UseIndexArray = true;
+		for (int x = 0; x < indices->size(); x++)
+		{
+			v_Indices.push_back((*indices)[x]);
+		}
+	}
 }
 
 void Model::LoadModel(const char* src)
@@ -195,6 +217,8 @@ void Model::InitVertexArray(GLenum drawType)
 {
 	VAO.Generate();
 	VBO.CreateBuffer(&v_Vertices[0], GetSizeInBytes(), drawType);
+	if (b_UseIndexArray)
+		EBO.CreateBuffer(&v_Indices[0], sizeof(glm::vec3) * (uint32_t)v_Indices.size(), drawType);
 	VertexArrayAttribute VAA;
 	VAA.Push(3, GL_FLOAT, GL_FALSE);
 	VAA.Push(3, GL_FLOAT, GL_FALSE);
@@ -202,8 +226,12 @@ void Model::InitVertexArray(GLenum drawType)
 	VAO.AddVAA(VAA);
 	VAO.Bind();
 	VBO.Bind();
+	if (b_UseIndexArray)
+		EBO.Bind();
 	VAO.Unbind();
 	VBO.Unbind();
+	if (b_UseIndexArray)
+		EBO.Unbind();
 }
 
 uint32_t Model::GetSizeInBytes()

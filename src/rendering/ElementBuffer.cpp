@@ -17,7 +17,7 @@ ElementBuffer::ElementBuffer()
 
 ElementBuffer::~ElementBuffer()
 {
-	glDeleteBuffers(1, &ID);
+//	glDeleteBuffers(1, &ID);
 }
 
 void ElementBuffer::CreateBuffer(const void* data, const uint32_t& dataSize, const GLenum drawType)

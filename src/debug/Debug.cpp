@@ -1,6 +1,9 @@
 #include "debug/Debug.h"
 #include "rendering/Camera.h"
-//#include "entities/Pawn.h"
+#include <vector>
+
+#include "rendering/Model.h"
+#include "rendering/Renderer.h"
 
 Debug* Debug::Instance()
 {
@@ -8,30 +11,86 @@ Debug* Debug::Instance()
 	return &instance;
 }
 
+
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//! ----------------------------------------------------------- MEMORY LEAK NEEDS TO BE FIXED IM JUST LAZY RN ------------------------------------------------
+//! Also will probably do this a better way, so instead of creating a box each time we can just use some matrix to transform the location? IDK
+void Debug::DrawCollisions(WorldEntity* entity)
+{
+	if (!entity)
+		return;
+
+	for (auto& i : CollisionBoxes)
+	{
+		Renderer::Entities.remove(i);
+	}
+
+	std::vector<glm::vec3> vertices;
+	std::vector<glm::uvec3> indices;
+
+	int offset = 0;
+
+	for (const auto& x : entity->v_CollisionBoxes)
+	{
+		//! --- Front Vertices ---
+		
+		glm::vec3 max = x.CollisionMax();
+		glm::vec3 min = x.CollisionMin();
+
+		//! BOTTOM LEFT
+		vertices.push_back(min);
+		//! BOTTOM RIGHT
+		vertices.push_back({ max.x, min.y, min.z });
+		//! TOP LEFT
+		vertices.push_back({ min.x, max.y, min.z });
+		//! TOP RIGHT
+		vertices.push_back({ max.x, max.y, min.z });
+
+		//! --- Rear Vertices ---
+
+		//! BOTTOM LEFT
+		vertices.push_back({ min.x, min.y, max.z });
+		//! BOTTOM RIGHT
+		vertices.push_back({ max.x, min.y, max.z });
+		//! TOP LEFT
+		vertices.push_back({ min.x, max.y, max.z });
+		//! TOP RIGHT
+		vertices.push_back({ max.x, max.y, max.z });
+
+
+		//! every pair is a side { Front / Back / Right / Left / Top / Bottom }
+		indices.push_back({ 0 + offset, 1 + offset, 2 + offset });
+		indices.push_back({ 1 + offset, 2 + offset, 3 + offset });
+		indices.push_back({ 4 + offset, 5 + offset, 6 + offset });
+		indices.push_back({ 5 + offset, 6 + offset, 7 + offset });
+		indices.push_back({ 3 + offset, 7 + offset, 5 + offset });
+		indices.push_back({ 5 + offset, 1 + offset, 3 + offset });
+		indices.push_back({ 2 + offset, 6 + offset, 4 + offset });
+		indices.push_back({ 4 + offset, 0 + offset, 2 + offset });
+		indices.push_back({ 6 + offset, 3 + offset, 7 + offset });
+		indices.push_back({ 6 + offset, 3 + offset, 2 + offset });
+		indices.push_back({ 5 + offset, 0 + offset, 1 + offset });
+		indices.push_back({ 5 + offset, 0 + offset, 4 + offset });
+
+		offset += 8;
+
+		WorldEntity* collisionEntity = new WorldEntity();
+		Model model{ entity->m_Model.m_Shader, &vertices, &indices };
+		collisionEntity->AttachModel(model, GL_DYNAMIC_DRAW);
+		CollisionBoxes.push_back(collisionEntity);
+	}
+
+	PRINT(CollisionBoxes.size());
+}
+
 Debug::~Debug()
 {
-// 	if (pawn) delete pawn;
-// 	if (model) delete model;
-// 	if (shader) delete shader;
+
 }
 
 void Debug::DebugCircle(glm::vec3 position, float radius)
 {
-// 	shader = new Shader("res/shaders/vertex.shader", "res/shaders/fragment.shader");
-// 	shader->use();
-// 	shader->SetVec4("color", glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
-// 
-// 	glm::mat4 shaderModel = glm::mat4(1.0f);
-// 	shader->SetMat4("model", shaderModel);
-// 
-// 	glm::mat4 view = glm::mat4(1.0f);
-// 	view = Camera::Instance()->GetView(); // position, target, and up -- no need to calculate right and above
-// 	shader->SetMat4("view", view);
-// 
-// 	glm::mat4 projection;
-// 	projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-// 	shader->SetMat4("projection", projection);
-// 
-// 	model = new Model("res/objects/testobj.obj", *shader);
-// 	pawn = new Pawn(*model, position);
+
 }
+
+// Draw collisions

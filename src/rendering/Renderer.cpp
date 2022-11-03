@@ -41,7 +41,16 @@ void Renderer::Draw(WorldEntity* entity)
 
 	entity->m_Model.VAO.Bind();
 	entity->m_Model.m_Shader->use();
-	glDrawArrays(GL_TRIANGLES, 0, (uint32_t)entity->m_Model.v_Vertices.size());
+
+	if (entity->m_Model.b_IsCollision)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	else
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	if (entity->m_Model.b_UseIndexArray)
+		glDrawElements(GL_TRIANGLES, entity->m_Model.v_Indices.size() * 3, GL_UNSIGNED_INT, nullptr);
+	else
+		glDrawArrays(GL_TRIANGLES, 0, (uint32_t)entity->m_Model.v_Vertices.size());
 	entity->m_Model.VAO.Unbind();
 }
 

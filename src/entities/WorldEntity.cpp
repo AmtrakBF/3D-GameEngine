@@ -2,13 +2,16 @@
 #include "rendering/Renderer.h"
 
 WorldEntity::WorldEntity()
-	: m_Name(""), m_Position(0.0f), m_Rotation({0.0f, 0.0f, 90.0f}), m_Scale(0.0f), m_Direction(0.0f), b_UseCollision(false)
+	: m_Name(""), m_Position(0.0f), m_Rotation({0.0f, 0.0f, 90.0f}), m_Scale(0.0f), m_Direction(0.0f), b_UseCollision(false), m_Id(0)
 {
 
 }
 void WorldEntity::Delete()
 {
-
+	if (m_Model.b_IsCollision)
+	{
+		
+	}
 }
 
 void WorldEntity::AttachModel(Model& model, GLenum drawType)

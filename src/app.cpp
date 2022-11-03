@@ -91,6 +91,7 @@ int main()
 	// MODELS
 	Model cube("res/objects/Line.obj", shader);
 	Model test("res/objects/Hump.obj", shader);
+	Model collisionTest("res/objects/CollisionTest.obj", shader);
 	Line line(test);
 
  	Pawn staticLine(cube, { 7.0f, 0.0f, 0.0f });
@@ -111,6 +112,8 @@ int main()
 
 	while (!glfwWindowShouldClose(window))
 	{
+		Debug::Instance()->DrawCollisions(&line);
+
 		Camera::Instance()->ProcessInput(window);
 
 		currentTime = glfwGetTime();
