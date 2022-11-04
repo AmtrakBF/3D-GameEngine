@@ -11,20 +11,17 @@ Debug* Debug::Instance()
 	return &instance;
 }
 
-
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//! ----------------------------------------------------------- MEMORY LEAK NEEDS TO BE FIXED IM JUST LAZY RN ------------------------------------------------
-//! Also will probably do this a better way, so instead of creating a box each time we can just use some matrix to transform the location? IDK
 void Debug::DrawCollisions(WorldEntity* entity)
 {
 	if (!entity)
 		return;
 
-	for (auto& i : CollisionBoxes)
-	{
-		Renderer::Entities.remove(i);
-	}
+	DeleteCollisions();
+	CreateCollisions(entity);
+}
 
+void Debug::CreateCollisions(WorldEntity* entity)
+{
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::uvec3> indices;
 
@@ -33,7 +30,7 @@ void Debug::DrawCollisions(WorldEntity* entity)
 	for (const auto& x : entity->v_CollisionBoxes)
 	{
 		//! --- Front Vertices ---
-		
+
 		glm::vec3 max = x.CollisionMax();
 		glm::vec3 min = x.CollisionMin();
 
@@ -74,18 +71,26 @@ void Debug::DrawCollisions(WorldEntity* entity)
 
 		offset += 8;
 
-		WorldEntity* collisionEntity = new WorldEntity();
+		WorldEntity* collisionActor = new WorldEntity();
 		Model model{ entity->m_Model.m_Shader, &vertices, &indices };
-		collisionEntity->AttachModel(model, GL_DYNAMIC_DRAW);
-		CollisionBoxes.push_back(collisionEntity);
+		collisionActor->AttachModel(model, GL_DYNAMIC_DRAW);
+		v_CollisionBoxes.push_back(collisionActor);
 	}
+}
 
-	PRINT(CollisionBoxes.size());
+void Debug::DeleteCollisions()
+{
+	for (auto& i : v_CollisionBoxes)
+	{
+		Renderer::Entities.remove(i);
+		delete i;
+	}
+	v_CollisionBoxes.clear();
 }
 
 Debug::~Debug()
 {
-
+	DeleteCollisions();
 }
 
 void Debug::DebugCircle(glm::vec3 position, float radius)

@@ -90,7 +90,7 @@ int main()
 	// -------------------------------------------------------------------
 	// MODELS
 	Model cube("res/objects/Line.obj", shader);
-	Model test("res/objects/Hump.obj", shader);
+	Model test("res/objects/CenteredStair.obj", shader);
 	Model collisionTest("res/objects/CollisionTest.obj", shader);
 	Line line(test);
 
@@ -132,7 +132,6 @@ int main()
 		World::OnUpdate();
 		Camera::Instance()->OnUpdate();
 		Renderer::Clear();
-		//Collision::Instance()->UpdateCollisions();
 		EventSystem::Instance()->ProcessEvents();
 
 		shader.use();
@@ -152,7 +151,6 @@ int main()
 		glfwPollEvents();
 
 	}
-
 	glfwTerminate();
 	return 0;
 }

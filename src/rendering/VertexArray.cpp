@@ -2,7 +2,8 @@
 
 VertexArray::~VertexArray()
 {
-	glDeleteVertexArrays(1, &ID);
+	if (ID)
+		glDeleteVertexArrays(1, &ID);
 }
 
 void VertexArray::Bind() const

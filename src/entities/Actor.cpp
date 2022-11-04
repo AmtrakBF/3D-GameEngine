@@ -17,7 +17,7 @@
 * 
 * To achieve this, vertices are calculated on the CPU and then sent over to be GPU
 * 
-* I heard that using GLProgram was slow so I figured instead of making a shader per object, you can move them via CPU
+* I read that using GLProgram was slow so I figured instead of making a shader per object, you can move them via CPU
 * Haven't done any benchmarking or anything but I can picture these functions being slower with more vertices
 * 
 * I also haven't done any research into any problems and tried to figure them out on my own. So to better improve this engine
@@ -105,18 +105,8 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis)
 	//! Rotate all collisions associated with object
 	for (auto& i : v_CollisionBoxes)
 	{
-		i.Rotate();
+		i.Rotate(degrees, rotationAxis);
 	}
-
-	//! Dont understand this note but gonna keep it just in case it makes sense
-	//! okay yeah figured it out. dimensions of x,y,z are staying the same even when rotating
-	//! Could of sworn we did something about that before but ill look into it
-	//! Need to add rotations for Dimensions
-	//! 
-	//! 
-	//! 
-	//! 
-	//! 
 
 	//! loop through each pair of vertex positions and update with rotation matrix
 	//! make sure normals are corrected for rotation

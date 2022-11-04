@@ -8,7 +8,8 @@ VertexBuffer::VertexBuffer(const void* data, const uint32_t& dataSize, const GLe
 
 VertexBuffer::~VertexBuffer()
 {
-	glDeleteBuffers(1, &ID);
+	if (ID)
+		glDeleteBuffers(1, &ID);
 }
 
 void VertexBuffer::CreateBuffer(const void* data, const uint32_t& dataSize, const GLenum drawType)

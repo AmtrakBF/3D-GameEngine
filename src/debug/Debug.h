@@ -16,7 +16,7 @@ private:
 	Debug(const Debug& debug) /*: pawn(nullptr), model(nullptr), shader(nullptr)*/ {}
 	Debug& operator = (const Debug& debug) {}
 
-	std::list<WorldEntity*> CollisionBoxes;
+	std::list<WorldEntity*> v_CollisionBoxes;
 
 	enum BoxVertice {
 		FRONT_BOT_LEFT = 0,
@@ -33,6 +33,8 @@ public:
 	static Debug* Instance();
 
 	void DrawCollisions(WorldEntity* entity);
+	void CreateCollisions(WorldEntity* entity);
+	void DeleteCollisions();
 	void DebugCircle(glm::vec3 position, float radius);
 
 	//! probably a better way to do this rather than just copy and pasting the same code over and over but it works

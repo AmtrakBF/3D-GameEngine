@@ -1,6 +1,8 @@
 #include "collision/CollisionBox.h"
 #include "entities/WorldEntity.h"
 
+#include "glm/gtc/matrix_transform.hpp"
+
 CollisionBox::CollisionBox(WorldEntity* entity, CollisionData data)
 	: entity(entity), m_CollisionDirection(0.0f), c_OriginCollisionDimensions(data.dimensions)
 {
@@ -22,28 +24,13 @@ CollisionBox::CollisionBox(WorldEntity* entity, CollisionData data)
 	m_CollisionDimensions = data.dimensions;
 }
 
-void CollisionBox::Rotate()
+void CollisionBox::Rotate(float degrees, glm::vec3 rotationAxis)
 {
-	//! Only rotates on z axis...
-	float radian = (entity->m_Rotation.z * 3.14159265359f) / 180.0f;
+	glm::mat4 RotationMatrix = glm::mat4(1.0f);
+	RotationMatrix = glm::rotate(RotationMatrix, glm::radians(degrees), rotationAxis);
 
-	//! Set position to origin 
-	m_CollisionMax -= entity->m_Position;
-	m_CollisionMin -= entity->m_Position;
-
-	//! Objects default transform height * cos(rotation in radians) + opposite(CollisionPosition.x)
-	m_CollisionMax.x = ((c_OriginCollisionDimensions.y * cos(radian)) + (-m_CollisionPos.x));
-	//! Objects default transform height * sin(rotation in radians) + opposite(CollisionPosition.y)
-	m_CollisionMax.y = ((c_OriginCollisionDimensions.y * sin(radian)) + (-m_CollisionPos.y));
-
-	//! Objects default transform opposite(width) * cos(rotation in radians) + CollisionPosition.y
-	m_CollisionMin.x = (((-c_OriginCollisionDimensions.x) * cos(radian)) + m_CollisionPos.x);
-	//! Objects default transform opposite(width) * sin(rotation in radians) + CollisionPosition.y
-	m_CollisionMin.y = (((-c_OriginCollisionDimensions.x) * sin(radian)) + m_CollisionPos.y);
-
-	//! Rotates the collision position for proper alignment of Min and Max 
-	m_CollisionPos.x = (((-c_OriginCollisionDimensions.x) * cos(radian)) + m_CollisionPos.x);
-	m_CollisionPos.y = (((-c_OriginCollisionDimensions.x) * sin(radian)) + m_CollisionPos.y);
+	m_CollisionMax = RotationMatrix * glm::vec4(m_CollisionMax, 1.0f);
+	m_CollisionMin = RotationMatrix * glm::vec4(m_CollisionMin, 1.0f);
 
 	//! Max is always top right
 	//! Min is always bottom left
