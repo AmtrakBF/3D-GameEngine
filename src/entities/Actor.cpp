@@ -43,6 +43,8 @@ Actor::Actor(Model model, glm::vec3 position)
 
 	if (v_CollisionBoxes.empty())
 		b_UseCollision = false;
+
+	EventSystem::Instance()->RegisterClient("OnUpdate", this);
 }
 
 Actor::Actor()
@@ -58,8 +60,6 @@ void Actor::Translate(glm::vec3 translation, bool isRotation) // (0, 1, 0)
 	//! update position
 	UpdatePositionData(translation, isRotation);
 	glm::vec3 directionalTravel = Collision::Instance()->UpdateCollision(this);
-
-	Debug::Instance()->PRINT(directionalTravel);
 
 	if (directionalTravel != glm::vec3(1.0f))
 	{
@@ -98,16 +98,32 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis)
 	m_TranslationMatrix = glm::mat4(1.0f);
 	m_TranslationMatrix = glm::rotate(m_TranslationMatrix, glm::radians(degrees), rotationAxis);
 
-	//! NEEDS SOME WORK FOR SURE
-	//! ------------------------------------------- DEBUG -------------------------------------------
-	//! Possibly rotating multiple collsions weird, needs to be debuged
-	//! Also need to be able to set rotation origin....
 	//! Rotate all collisions associated with object
 	for (auto& i : v_CollisionBoxes)
 	{
 		i.Rotate(degrees, rotationAxis);
+		i.Translate(pos);
 	}
 
+	//! Check if collision is detected
+	//! If so, rotate back to original position
+	//! else continue on with regular translation
+	glm::vec3 directionalTravel = Collision::Instance()->UpdateCollision(this);
+	if (directionalTravel != glm::vec3(1.0f))
+	{
+ 		m_TranslationMatrix = glm::mat4(1.0f);
+		m_TranslationMatrix = glm::rotate(m_TranslationMatrix, glm::radians(0.0f), rotationAxis);
+
+		for (auto& i : v_CollisionBoxes)
+		{
+			i.Translate(-pos);
+ 			i.Rotate(-degrees, rotationAxis);
+		}
+	}
+	else
+		for (auto& i : v_CollisionBoxes)
+			i.Translate(-pos);
+	
 	//! loop through each pair of vertex positions and update with rotation matrix
 	//! make sure normals are corrected for rotation
 	for (int x = 0; x < m_Model.v_Vertices.size(); x++)
@@ -115,6 +131,7 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis)
 		m_Model.v_Vertices[x].vertices = m_TranslationMatrix * glm::vec4(m_Model.v_Vertices[x].vertices, 1.0f);
 		m_Model.v_Vertices[x].normals = glm::mat3(glm::transpose(glm::inverse(m_TranslationMatrix))) * m_Model.v_Vertices[x].normals;
 	}
+
 	//! translate back to previous location and apply new vertex data to GPU buffer
 	Translate(pos);
 
@@ -253,7 +270,7 @@ void Actor::UpdatePositionData(glm::vec3 translation, bool isRotation)
 	m_Position += translation;
 	for (auto& i : v_CollisionBoxes)
 	{
-		i.Update(translation);
+		i.Translate(translation);
 	}
 	if (!isRotation)
 		m_Direction = glm::normalize(translation);

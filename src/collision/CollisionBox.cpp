@@ -64,7 +64,7 @@ void CollisionBox::Rotate(float degrees, glm::vec3 rotationAxis)
 	m_CollisionCenter = { (m_CollisionMax.x + m_CollisionMin.x) / 2, (m_CollisionMax.y + m_CollisionMin.y) / 2, (m_CollisionMax.z + m_CollisionMin.z) / 2 };
 }
 
-void CollisionBox::Update(glm::vec3 position)
+void CollisionBox::Translate(glm::vec3 position)
 {
 	m_CollisionMin += position;
 	m_CollisionMax += position;

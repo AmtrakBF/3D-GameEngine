@@ -31,5 +31,5 @@ public:
 	const inline glm::vec3 CollisionDimensions() const { return m_CollisionDimensions; }
 
 	void Rotate(float degrees, glm::vec3 rotationAxis);
-	void Update(glm::vec3 position);
+	void Translate(glm::vec3 position);
 };

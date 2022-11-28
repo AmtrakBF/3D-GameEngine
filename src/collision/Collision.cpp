@@ -20,13 +20,16 @@ bool Collision::CheckCollision(WorldEntity* a, WorldEntity* b)
 		{
 			for (auto& x : b->v_CollisionBoxes)
 			{
-				if (i.CollisionMin().x < x.CollisionMax().x &&	 // Obj A BottomLeft X is    LESS THAN      Obj B TopRight    X
+				if (i.CollisionMin().x < x.CollisionMax().x &&	  // Obj A BottomLeft X is    LESS THAN      Obj B TopRight    X
 					i.CollisionMax().x > x.CollisionMin().x &&    // Obj A TopRight   X is    GREATER THAN   Obj B BottomLeft  X
 					i.CollisionMin().y < x.CollisionMax().y &&    // Obj A BottomLeft Y is    LESS THAN      Obj B TopRight    Y
 					i.CollisionMax().y > x.CollisionMin().y &&    // Obj A TopRight   Y is    GREATER THAN   Obj B BottomRight Y
 					i.CollisionMin().z < x.CollisionMax().z &&    // Obj A BottomLeft Z is	  LESS THAN		 OBJ B TopRight    Z
 					i.CollisionMax().z > x.CollisionMin().z)
 				{
+					//! -------------------------------------------------------------------------------------------- DEBUG ------------------------------------------------------------------------
+					//! why don't we use the actor collisions box direction instead of the other object?
+					//! may cause issues further down with multiple actors
 					x.m_CollisionDirection = GetCollisionDirection(a->m_Direction ,&i, &x);
 					return true;
 				}

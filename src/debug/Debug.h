@@ -11,9 +11,9 @@
 class Debug
 {
 private:
-	Debug() /*: pawn(nullptr), model(nullptr), shader(nullptr)*/ {}
+	Debug() {}
 	~Debug();
-	Debug(const Debug& debug) /*: pawn(nullptr), model(nullptr), shader(nullptr)*/ {}
+	Debug(const Debug& debug) {}
 	Debug& operator = (const Debug& debug) {}
 
 	std::list<WorldEntity*> v_CollisionBoxes;
