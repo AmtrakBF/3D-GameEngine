@@ -25,9 +25,17 @@ public:
 
 	bool b_UseCollision;
 
+	glm::mat4 m_TranslationMatrix, m_ViewMatrix, m_ProjectionMatrix;
+
 	std::vector<CollisionBox> v_CollisionBoxes;
 	Model m_Model;
 
+	virtual void Translate(glm::vec3 translation);
+	virtual void Rotate(float degrees, glm::vec3 rotationAxis);
+	virtual void Scale(glm::vec3 scale);
+	virtual void TranslateCollisionData(glm::vec3 translation);
+	virtual void RotateCollisionData(glm::vec3 translation, float degrees, glm::vec3 rotationAxis);
+	virtual void ScaleCollisionData(glm::vec3 translation);
 
 	void Delete();
 	void AttachModel(Model& model, GLenum drawType);

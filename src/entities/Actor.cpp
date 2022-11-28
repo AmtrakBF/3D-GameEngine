@@ -1,11 +1,11 @@
 #include "Actor.h"
 
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-
 #include "rendering/Renderer.h"
 #include "events/EventSystem.h"
 #include "collision/Collision.h"
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 #include <iostream>
 #include "debug/Debug.h"
@@ -60,15 +60,15 @@ Actor::~Actor()
 }
 
 //! translates the object on CPU side
-void Actor::Translate(glm::vec3 translation, bool isRotation) // (0, 1, 0)
+void Actor::Translate(glm::vec3 translation)
 {
 	//! update position
-	UpdatePositionData(translation, isRotation);
+	TranslateCollisionData(translation);
 	glm::vec3 directionalTravel = Collision::Instance()->UpdateCollision(this);
 
 	if (directionalTravel != glm::vec3(1.0f))
 	{
-		UpdatePositionData(directionalTravel, isRotation);
+		TranslateCollisionData(directionalTravel);
 		translation += directionalTravel;
 	}
 
@@ -103,12 +103,7 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis)
 	m_TranslationMatrix = glm::mat4(1.0f);
 	m_TranslationMatrix = glm::rotate(m_TranslationMatrix, glm::radians(degrees), rotationAxis);
 
-	//! Rotate all collisions associated with object
-	for (auto& i : v_CollisionBoxes)
-	{
-		i.Rotate(degrees, rotationAxis);
-		i.Translate(pos);
-	}
+	RotateCollisionData(pos, degrees, rotationAxis);
 
 	//! Check if collision is detected
 	//! If so, rotate back to original position
@@ -146,25 +141,7 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis)
 //! scales the object on CPU side
 void Actor::Scale(glm::vec3 scale)
 {
-	//! check to see if parameters are uniform
-	bool nonUniform = false;
-	if (scale.x != scale.y && scale.y != scale.z)
-		nonUniform = true;
-
-	//! set translation matrix to default and scale by parameters
-	m_TranslationMatrix = glm::mat4(1.0f);
-	m_TranslationMatrix = glm::scale(m_TranslationMatrix, scale);
-
-	//! loop through each pair of vertices and apply scale, correct normals if scaling is non uniform
-	for (int x = 0; x < m_Model.v_Vertices.size(); x++)
-	{
-		m_Model.v_Vertices[x].vertices = m_TranslationMatrix * glm::vec4(m_Model.v_Vertices[x].vertices, 1.0f);
-
-		if (nonUniform)
-			m_Model.v_Vertices[x].normals = glm::mat3(glm::transpose(glm::inverse(m_TranslationMatrix))) * m_Model.v_Vertices[x].normals;
-	}
-	//! apply changed vertex data to GPU buffer
-	m_Model.VBO.UpdateBuffer(&m_Model.v_Vertices[0], m_Model.GetSizeInBytes());
+	Scale(scale);
 }
 
 std::vector<WorldEntity*> Actor::GetNearbyObjects(glm::vec3 distance)
@@ -268,15 +245,4 @@ glm::vec3 Actor::GetCollisionDistance(WorldEntity* entity)
 	}
 
 	return distance;
-}
-
-void Actor::UpdatePositionData(glm::vec3 translation, bool isRotation)
-{
-	m_Position += translation;
-	for (auto& i : v_CollisionBoxes)
-	{
-		i.Translate(translation);
-	}
-	if (!isRotation)
-		m_Direction = glm::normalize(translation);
 }

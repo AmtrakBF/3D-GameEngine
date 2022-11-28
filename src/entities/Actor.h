@@ -11,10 +11,9 @@ public:
 	Actor();
 	~Actor();
 
-	void Translate(glm::vec3 translation, bool isRotation = false);
-	void Rotate(float degrees, glm::vec3 rotationAxis);
-	void Scale(glm::vec3 scale);
-	void UpdatePositionData(glm::vec3 translation, bool isRotation);
+	void Translate(glm::vec3 translation) override;
+	void Rotate(float degrees, glm::vec3 rotationAxis) override;
+	void Scale(glm::vec3 scale) override;
 
 	std::vector<WorldEntity*> GetNearbyObjects(glm::vec3 distance);
 	std::vector<WorldEntity*> GetNearbyObjects_CollisionBox(glm::vec3 distance);
