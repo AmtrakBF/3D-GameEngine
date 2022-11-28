@@ -9,6 +9,7 @@ class Actor : public WorldEntity, public Listener
 public:
 	Actor(Model model, glm::vec3 position);
 	Actor();
+	~Actor();
 
 	void Translate(glm::vec3 translation, bool isRotation = false);
 	void Rotate(float degrees, glm::vec3 rotationAxis);

@@ -29,7 +29,6 @@ Actor::Actor(Model model, glm::vec3 position)
 	: m_TranslationMatrix(glm::mat4(1.0f)), m_ViewMatrix(glm::mat4(1.0f)), m_ProjectionMatrix(glm::mat4(1.0f))
 {
 	AttachModel(model, GL_DYNAMIC_DRAW);
-	EventSystem::Instance()->RegisterClient("Collision", this);
 	Renderer::Actors.push_back(this);
 
 	b_UseCollision = true;
@@ -50,8 +49,14 @@ Actor::Actor(Model model, glm::vec3 position)
 Actor::Actor()
 	: m_TranslationMatrix(glm::mat4(1.0f)), m_ViewMatrix(glm::mat4(1.0f)), m_ProjectionMatrix(glm::mat4(1.0f))
 {
-	EventSystem::Instance()->RegisterClient("Collision", this);
+	EventSystem::Instance()->RegisterClient("OnUpdate", this);
 	Renderer::Actors.push_back(this);
+}
+
+Actor::~Actor()
+{
+	EventSystem::Instance()->UnregisterClient("OnUpdate", this);
+	Renderer::Actors.remove(this);
 }
 
 //! translates the object on CPU side

@@ -7,8 +7,8 @@
 #include "rendering/Renderer.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+//void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+//void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 Engine* Engine::Instance()
 {
@@ -23,7 +23,7 @@ void Engine::Init()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	window = glfwCreateWindow(800, 600, "LearnOpenGL", nullptr, nullptr);
+	window = glfwCreateWindow(screenWidth, screenHeight, "LearnOpenGL", nullptr, nullptr);
 	if (!window)
 	{
 		std::cout << "failed to create GLFW window" << std::endl;
@@ -33,8 +33,8 @@ void Engine::Init()
 
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
+	/*glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);*/
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -57,8 +57,6 @@ void Engine::Run()
 
 	while (!glfwWindowShouldClose(window))
 	{
-		Camera::Instance()->ProcessInput(window);
-
 		currentTime = glfwGetTime();
 		timeDiff = currentTime - prevTime;
 		counter++;
@@ -73,7 +71,6 @@ void Engine::Run()
 		}
 
 		World::OnUpdate();
-		Camera::Instance()->OnUpdate();
 		Renderer::Clear();
 		EventSystem::Instance()->SendEvent("OnUpdate", window);
 		EventSystem::Instance()->ProcessEvents();
@@ -86,17 +83,23 @@ void Engine::Run()
 	glfwTerminate();
 }
 
+void Engine::SetScreenResolution(int width, int height)
+{
+	screenHeight = height;
+	screenWidth = width;
+}
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-	Camera::Instance()->mouse_callback(window, xpos, ypos);
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-	Camera::Instance()->scroll_callback(window, xoffset, yoffset);
-}
+//void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+//{
+//	Camera::Instance()->mouse_callback(window, xpos, ypos);
+//}
+//
+//void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+//{
+//	Camera::Instance()->scroll_callback(window, xoffset, yoffset);
+//}

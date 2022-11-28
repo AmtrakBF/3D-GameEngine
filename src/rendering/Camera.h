@@ -6,7 +6,7 @@
 class Camera {
 
 public:
-	static Camera* Instance();
+	Camera();
 
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -23,12 +23,6 @@ public:
 	void ProcessInput(GLFWwindow* window);
 
 private:
-	Camera() : aspectRatio(1.33333f), firstMouse(true), cameraPos(0.0f, 0.0f, 3.0f), cameraFront(0.0f, 0.0f, -1.0f), cameraUp(0.0f, 1.0f, 0.0f), 
-		lastX(400.0f), lastY(300.0f), yaw(-90.0f), pitch(0.0f), fov(45.0f), cameraSpeed(2.5f * World::DeltaTime()) {};
-	~Camera() {};
-	Camera(const Camera& camera) : aspectRatio(1.33333f), firstMouse(true), cameraPos(0.0f, 0.0f, 3.0f), cameraFront(0.0f, 0.0f, -1.0f), cameraUp(0.0f, 1.0f, 0.0f),
-		lastX(400.0f), lastY(300.0f), yaw(-90.0f), pitch(0.0f), fov(45.0f), cameraSpeed(2.5f * World::DeltaTime()) {};
-	Camera& operator = (const Camera& camera) {};
 
 	float aspectRatio;
 	bool firstMouse;

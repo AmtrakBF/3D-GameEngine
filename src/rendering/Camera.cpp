@@ -1,10 +1,11 @@
 #include "Camera.h"
 #include "glm/gtc/matrix_transform.hpp"
 
-Camera* Camera::Instance()
+Camera::Camera()
+	: aspectRatio(1.33333f), firstMouse(true), cameraPos(0.0f, 0.0f, 3.0f), cameraFront(0.0f, 0.0f, -1.0f), cameraUp(0.0f, 1.0f, 0.0f),
+	lastX(400.0f), lastY(300.0f), yaw(-90.0f), pitch(0.0f), fov(45.0f), cameraSpeed(2.5f * World::DeltaTime())
 {
-	static Camera camera;
-	return &camera;
+
 }
 
 void Camera::OnUpdate()
