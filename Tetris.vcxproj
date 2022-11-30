@@ -158,6 +158,7 @@
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\entities\Actor.cpp" />
     <ClCompile Include="src\entities\Circle.cpp" />
+    <ClCompile Include="src\entities\Pawn.cpp" />
     <ClCompile Include="src\rendering\Camera.cpp" />
     <ClCompile Include="src\rendering\ElementBuffer.cpp" />
     <ClCompile Include="src\rendering\Model.cpp" />

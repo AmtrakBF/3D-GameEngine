@@ -64,6 +64,7 @@ void Actor::Translate(glm::vec3 translation)
 {
 	//! update position
 	TranslateCollisionData(translation);
+	UpdateEntityMinMax();
 	glm::vec3 directionalTravel = Collision::Instance()->UpdateCollision(this);
 
 	if (directionalTravel != glm::vec3(1.0f))
@@ -81,6 +82,7 @@ void Actor::Translate(glm::vec3 translation)
 	{
 		m_Model.v_Vertices[x].vertices = m_TranslationMatrix * glm::vec4(m_Model.v_Vertices[x].vertices, 1.0f);
 	}
+	UpdateEntityMinMax();
 	//! update the GPU buffer with updated vertex data
 	m_Model.VBO.UpdateBuffer(&m_Model.v_Vertices[0], m_Model.GetSizeInBytes());
 }
@@ -104,6 +106,7 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis)
 	m_TranslationMatrix = glm::rotate(m_TranslationMatrix, glm::radians(degrees), rotationAxis);
 
 	RotateCollisionData(pos, degrees, rotationAxis);
+	UpdateEntityMinMax();
 
 	//! Check if collision is detected
 	//! If so, rotate back to original position
@@ -134,6 +137,7 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis)
 
 	//! translate back to previous location and apply new vertex data to GPU buffer
 	Translate(pos);
+	UpdateEntityMinMax();
 
 	m_Model.VBO.UpdateBuffer(&m_Model.v_Vertices[0], m_Model.GetSizeInBytes());
 }
@@ -142,6 +146,16 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis)
 void Actor::Scale(glm::vec3 scale)
 {
 	Scale(scale);
+}
+
+void Actor::RotateCollisionData(glm::vec3 translation, float degrees, glm::vec3 rotationAxis)
+{
+	//! Rotate all collisions associated with object
+	for (auto& i : v_CollisionBoxes)
+	{
+		i.Rotate(degrees, rotationAxis);
+		i.Translate(translation);
+	}
 }
 
 std::vector<WorldEntity*> Actor::GetNearbyObjects(glm::vec3 distance)
@@ -157,8 +171,6 @@ std::vector<WorldEntity*> Actor::GetNearbyObjects(glm::vec3 distance)
 		if (i->GetId() == m_Id)
 			continue;
 
-		//! ------------------------------------------------------------ Optimize by using GetDistance(); -------------------------------------
-		//! Get distance between two entities
 		glm::vec3 totalDistance = GetCollisionDistance(i);
 
 		//! Check if all dimensions are within bounds of distance
@@ -180,6 +192,9 @@ std::vector<WorldEntity*> Actor::GetNearbyObjects_CollisionBox(glm::vec3 distanc
 	{
 		// Continue iteration if this object is "i"
 		if (i->GetId() == m_Id)
+			continue;
+
+		if (i->m_Model.b_IsCollision)
 			continue;
 
 		//! Get distance between two entities
@@ -218,31 +233,20 @@ glm::vec3 Actor::GetDistance(WorldEntity* entity)
 glm::vec3 Actor::GetCollisionDistance(WorldEntity* entity)
 {
 	if (!entity->b_UseCollision || !b_UseCollision)
-		return glm::vec3(0.0f);
+		return glm::vec3(1.0f);
 
-	glm::vec3 distance(0.0f);
-	glm::vec3 tempDistance(0.0f);
+	glm::vec3 distance = glm::abs(entity->m_Position) - abs(m_Position);
 
-	for (const auto& thisBox : v_CollisionBoxes)
-	{
-		for (const auto& entityBox : entity->v_CollisionBoxes)
-		{
-			tempDistance = glm::abs(entityBox.CollisionCenter() - thisBox.CollisionCenter());
+	//! Get CollisionDimensions
+	glm::vec3 iDimensions = abs(entity->m_CollisionMax - entity->m_CollisionMin);
+	glm::vec3 thisDimensions = abs(m_CollisionMax - m_CollisionMin);
 
-			//! Get CollisionDimensions
-			glm::vec3 iDimensions = entityBox.CollisionDimensions();
-			glm::vec3 thisDimensions = thisBox.CollisionDimensions();
+	//! We are calculating the difference from CollisionCenter and half the size of the CollisionBox
+	//!! Once we know that, we can then get the actual distance from Wall to Wall, not Center to Center
 
-			//! We are calculating the difference from CollisionCenter and half the size of the CollisionBox
-			//!! Once we know that, we can then get the actual distance from Wall to Wall, not Center to Center
-			tempDistance.x -= (iDimensions.x / 2) + (thisDimensions.x / 2);
-			tempDistance.y -= (iDimensions.y / 2) + (thisDimensions.y / 2);
-			tempDistance.z -= (iDimensions.z / 2) + (thisDimensions.z / 2);
-
-			if (tempDistance.x < distance.x && tempDistance.y < distance.y && tempDistance.z < distance.z)
-				distance = tempDistance;
-		}
-	}
+	distance.x -= (iDimensions.x / 2) + (thisDimensions.x / 2);
+	distance.y -= (iDimensions.y / 2) + (thisDimensions.y / 2);
+	distance.z -= (iDimensions.z / 2) + (thisDimensions.z / 2);
 
 	return distance;
 }

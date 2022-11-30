@@ -23,6 +23,9 @@ public:
 	glm::vec3 m_Scale;
 	glm::vec3 m_Direction;
 
+	glm::vec3 m_CollisionMin;
+	glm::vec3 m_CollisionMax;
+
 	bool b_UseCollision;
 
 	glm::mat4 m_TranslationMatrix, m_ViewMatrix, m_ProjectionMatrix;
@@ -35,10 +38,12 @@ public:
 	virtual void Scale(glm::vec3 scale);
 	virtual void TranslateCollisionData(glm::vec3 translation);
 	virtual void RotateCollisionData(glm::vec3 translation, float degrees, glm::vec3 rotationAxis);
-	virtual void ScaleCollisionData(glm::vec3 translation);
+	virtual void ScaleCollisionData(glm::vec3 scale);
 
 	void Delete();
 	void AttachModel(Model& model, GLenum drawType);
+	void UpdateEntityMinMax();
 
 	uint32_t GetId();
+
 };

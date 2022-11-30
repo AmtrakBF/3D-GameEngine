@@ -3,12 +3,10 @@
 #include <iostream>
 
 #include "events/EventSystem.h"
-#include "rendering/Camera.h"
 #include "rendering/Renderer.h"
+#include "entities/World.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-//void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-//void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 Engine* Engine::Instance()
 {
@@ -33,8 +31,6 @@ void Engine::Init()
 
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	/*glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);*/
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -93,13 +89,3 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
-
-//void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-//{
-//	Camera::Instance()->mouse_callback(window, xpos, ypos);
-//}
-//
-//void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-//{
-//	Camera::Instance()->scroll_callback(window, xoffset, yoffset);
-//}

@@ -32,4 +32,5 @@ public:
 
 	void Rotate(float degrees, glm::vec3 rotationAxis);
 	void Translate(glm::vec3 position);
+	void Scale(glm::vec3 scale);
 };

@@ -32,6 +32,7 @@ private:
 public:
 	static Debug* Instance();
 
+	//! Very CPU Expensive
 	void DrawCollisions(WorldEntity* entity);
 	void CreateCollisions(WorldEntity* entity);
 	void DeleteCollisions();

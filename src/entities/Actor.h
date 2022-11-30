@@ -14,6 +14,7 @@ public:
 	void Translate(glm::vec3 translation) override;
 	void Rotate(float degrees, glm::vec3 rotationAxis) override;
 	void Scale(glm::vec3 scale) override;
+	void RotateCollisionData(glm::vec3 translation, float degrees, glm::vec3 rotationAxis) override;
 
 	std::vector<WorldEntity*> GetNearbyObjects(glm::vec3 distance);
 	std::vector<WorldEntity*> GetNearbyObjects_CollisionBox(glm::vec3 distance);

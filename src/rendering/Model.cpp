@@ -7,7 +7,7 @@
 #include <debug/Debug.h>
 
 Model::Model(const char* src, Shader& shader)
-	: m_Shader(&shader), m_ModelName(""), v_Vertices(0), b_UseIndexArray(false), b_CollisionBox(false), m_Dimensions(0.0f), b_IsCollision(false)
+	: m_Shader(&shader), m_ModelName(""), v_Vertices(0), b_UseIndexArray(false), m_Dimensions(0.0f), b_IsCollision(false)
 {
 	LoadModel(src);
 }
@@ -20,12 +20,11 @@ Model::Model(const Model& model)
 	m_Shader = model.m_Shader;
 	m_Dimensions = model.m_Dimensions;
 	b_UseIndexArray = false;
-	b_CollisionBox = false;
 	b_IsCollision = false;
 }
 
 Model::Model(Shader* shader, const std::vector<glm::vec3>* vertices, const std::vector<glm::uvec3>* indices /*= nullptr*/)
-	: m_Shader(shader), m_ModelName(""), v_Vertices(0), b_UseIndexArray(false), b_CollisionBox(false), m_Dimensions(0.0f), b_IsCollision(true)
+	: m_Shader(shader), m_ModelName(""), v_Vertices(0), b_UseIndexArray(false), m_Dimensions(0.0f), b_IsCollision(true)
 {
 	if (vertices)
 	{
@@ -52,6 +51,7 @@ void Model::LoadModel(const char* src)
 	int tempInt;
 	int indexOffset = 0;
 	int collisionVertexCount = 0;
+	bool b_CollisionBox = false;
 
 	std::vector<glm::vec3> temp_vertices;
 	std::vector<glm::vec2> temp_uvs;
@@ -270,7 +270,7 @@ void Model::CreateCollisionBox(const std::vector<glm::vec3>& vertices, const std
 
 	data.max = max;
 	data.min = min;
-	data.dimensions = abs(max) + abs(min);
+	data.dimensions = abs(max - min);
 
 	v_CollisonDimensions.push_back(data);
 }

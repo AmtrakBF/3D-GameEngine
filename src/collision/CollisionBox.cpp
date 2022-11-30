@@ -14,8 +14,7 @@ CollisionBox::CollisionBox(WorldEntity* entity, CollisionData data)
 	m_CollisionMax = entity->m_Position + data.max;
 
 	//! Center of collision box
-	m_CollisionCenter = { data.dimensions.x / 2, data.dimensions.y / 2, data.dimensions.z / 2 };
-	m_CollisionCenter += m_CollisionMin;
+	m_CollisionCenter = { (m_CollisionMax.x + m_CollisionMin.x) / 2, (m_CollisionMax.y + m_CollisionMin.y) / 2, (m_CollisionMax.z + m_CollisionMin.z) / 2 };
 
 	//! Set collision position, subject to change
 	m_CollisionPos = m_CollisionMin;
@@ -69,4 +68,16 @@ void CollisionBox::Translate(glm::vec3 position)
 	m_CollisionMin += position;
 	m_CollisionMax += position;
 	m_CollisionCenter += position;
+}
+
+void CollisionBox::Scale(glm::vec3 scale)
+{
+	m_CollisionMax *= scale;
+	m_CollisionMin *= scale;
+
+	//! Calculate new collision lengths with rotation
+	m_CollisionDimensions = glm::vec3(abs(m_CollisionMax.x) + abs(m_CollisionMin.x), abs(m_CollisionMax.y) + abs(m_CollisionMin.y), abs(m_CollisionMax.z) + abs(m_CollisionMin.z));
+
+	//! Calculate center of collision
+	m_CollisionCenter = { (m_CollisionMax.x + m_CollisionMin.x) / 2, (m_CollisionMax.y + m_CollisionMin.y) / 2, (m_CollisionMax.z + m_CollisionMin.z) / 2 };
 }
