@@ -5,8 +5,8 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 WorldEntity::WorldEntity()
-	: m_Name(""), m_Position(0.0f), m_Rotation({0.0f, 0.0f, 90.0f}), m_Scale(0.0f), m_Direction(0.0f), b_UseCollision(false), m_Id(0),
-	m_TranslationMatrix(glm::mat4(1.0f)), m_ViewMatrix(glm::mat4(1.0f)), m_ProjectionMatrix(glm::mat4(1.0f)), m_CollisionMin(0.0f), m_CollisionMax(0.0f)
+	: m_Name(""), m_Position(0.0f), m_Rotation({ 0.0f, 0.0f, 90.0f }), m_Scale(0.0f), m_Direction(0.0f), b_UseCollision(false), m_Id(0), m_EntityAttchedTo(nullptr),
+	m_TranslationMatrix(glm::mat4(1.0f)), m_ViewMatrix(glm::mat4(1.0f)), m_ProjectionMatrix(glm::mat4(1.0f)), m_CollisionMin(0.0f), m_CollisionMax(0.0f), b_IsAttachedToEntity(false)
 {
 
 }
@@ -66,6 +66,14 @@ void WorldEntity::UpdateEntityMinMax()
 	m_CollisionMin = min;
 }
 
+void WorldEntity::SetPosition(glm::vec3 position)
+{
+	//! Super easy way to setPosition
+	//! Can probably do mathematics to optimize
+	Translate(-m_Position);
+	Translate(position);
+}
+
 //! translates the object on CPU side
 void WorldEntity::Translate(glm::vec3 translation)
 {
@@ -87,7 +95,7 @@ void WorldEntity::Translate(glm::vec3 translation)
 }
 
 //! rotates the object on CPU side
-void WorldEntity::Rotate(float degrees, glm::vec3 rotationAxis)
+void WorldEntity::Rotate(float degrees, glm::vec3 rotationAxis, glm::vec3 offset /*= { 0.0f, 0.0f, 0.0f }*/)
 {
 	//! update member rotation and normalize around 360 degrees of rotation
 	m_Rotation += rotationAxis * degrees;
@@ -99,7 +107,7 @@ void WorldEntity::Rotate(float degrees, glm::vec3 rotationAxis)
 	glm::vec3 pos = m_Position;
 
 	//! translate to origin, and then perform rotation matrix
-	Translate(-m_Position);
+	Translate(-m_Position + offset);
 
 	m_TranslationMatrix = glm::mat4(1.0f);
 	m_TranslationMatrix = glm::rotate(m_TranslationMatrix, glm::radians(degrees), rotationAxis);
@@ -115,7 +123,7 @@ void WorldEntity::Rotate(float degrees, glm::vec3 rotationAxis)
 	//! translate back to previous location and apply new vertex data to GPU buffer
 	RotateCollisionData(pos, degrees, rotationAxis);
 	UpdateEntityMinMax();
-	Translate(pos);
+	Translate(pos - offset);
 
 	m_Model.VBO.UpdateBuffer(&m_Model.v_Vertices[0], m_Model.GetSizeInBytes());
 }

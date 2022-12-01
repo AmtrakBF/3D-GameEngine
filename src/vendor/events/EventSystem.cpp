@@ -75,8 +75,6 @@ void EventSystem::UnregisterClient(EVENTID event, Listener* client)
 			iter = database.erase(iter);
 			break;
 		}
-		else
-			iter++;
 	}
 }
 

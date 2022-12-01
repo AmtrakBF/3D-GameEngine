@@ -32,7 +32,7 @@ Actor::Actor(Model model, glm::vec3 position)
 	Renderer::Actors.push_back(this);
 
 	b_UseCollision = true;
-	m_Position = position;
+	Translate(position);
 
 	//! -------------------------------------------------------------- POSSIBLE OPTIMIZATION -----------------------------------------------------
 	for (const auto& i : m_Model.v_CollisonDimensions)
@@ -65,12 +65,22 @@ void Actor::Translate(glm::vec3 translation)
 	//! update position
 	TranslateCollisionData(translation);
 	UpdateEntityMinMax();
+	TranslateAttachedEntities(translation);
+
 	glm::vec3 directionalTravel = Collision::Instance()->UpdateCollision(this);
 
 	if (directionalTravel != glm::vec3(1.0f))
 	{
-		TranslateCollisionData(directionalTravel);
-		translation += directionalTravel;
+		if (b_IsAttachedToEntity)
+		{
+			m_EntityAttchedTo->Translate(directionalTravel);
+		}
+		else
+		{
+			TranslateAttachedEntities(directionalTravel);
+			TranslateCollisionData(directionalTravel);
+			translation += directionalTravel;
+		}
 	}
 
 	//! set translationMatrix to default matrix and translate it by given parameter
@@ -88,7 +98,7 @@ void Actor::Translate(glm::vec3 translation)
 }
 
 //! rotates the object on CPU side
-void Actor::Rotate(float degrees, glm::vec3 rotationAxis)
+void Actor::Rotate(float degrees, glm::vec3 rotationAxis, glm::vec3 offset /*= { 0.0f, 0.0f, 0.0f }*/)
 {
 	//! update member rotation and normalize around 360 degrees of rotation
 	m_Rotation += rotationAxis * degrees;
@@ -100,7 +110,7 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis)
 	glm::vec3 pos = m_Position;
 
 	//! translate to origin, and then perform rotation matrix
-	Translate(-m_Position);
+	Translate(-m_Position + offset);
 
 	m_TranslationMatrix = glm::mat4(1.0f);
 	m_TranslationMatrix = glm::rotate(m_TranslationMatrix, glm::radians(degrees), rotationAxis);
@@ -124,8 +134,11 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis)
 		}
 	}
 	else
+	{
 		for (auto& i : v_CollisionBoxes)
 			i.Translate(-pos);
+		RotateAttachedEntities(degrees, rotationAxis);
+	}
 	
 	//! loop through each pair of vertex positions and update with rotation matrix
 	//! make sure normals are corrected for rotation
@@ -136,7 +149,7 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis)
 	}
 
 	//! translate back to previous location and apply new vertex data to GPU buffer
-	Translate(pos);
+	Translate(pos - offset);
 	UpdateEntityMinMax();
 
 	m_Model.VBO.UpdateBuffer(&m_Model.v_Vertices[0], m_Model.GetSizeInBytes());
@@ -197,12 +210,29 @@ std::vector<WorldEntity*> Actor::GetNearbyObjects_CollisionBox(glm::vec3 distanc
 		if (i->m_Model.b_IsCollision)
 			continue;
 
-		//! Get distance between two entities
-		glm::vec3 totalDistance = GetCollisionDistance(i);
+		if (i == m_EntityAttchedTo)
+			continue;
 
-		//! Check if all dimensions are within bounds of distance
-		if (totalDistance.x <= distance.x && totalDistance.y <= distance.y && totalDistance.z <= distance.z)
-			nearby.push_back(i);
+		if (m_EntityAttchedTo != nullptr && i->m_EntityAttchedTo == m_EntityAttchedTo)
+			continue;
+
+		bool isNotAttached = true;
+		for (int x = 0; x < v_AttachedEntities.size(); x++)
+		{
+			if (v_AttachedEntities[x].m_Entity->GetId() == i->GetId())
+				isNotAttached = false;
+		}
+
+		//! Make sure attached item isn't checked for collisions
+		if (isNotAttached)
+		{
+			//! Get distance between two entities
+			glm::vec3 totalDistance = GetCollisionDistance(i);
+
+			//! Check if all dimensions are within bounds of distance
+			if (totalDistance.x <= distance.x && totalDistance.y <= distance.y && totalDistance.z <= distance.z)
+				nearby.push_back(i);
+		}
 	}
 
 	return nearby;
@@ -243,10 +273,42 @@ glm::vec3 Actor::GetCollisionDistance(WorldEntity* entity)
 
 	//! We are calculating the difference from CollisionCenter and half the size of the CollisionBox
 	//!! Once we know that, we can then get the actual distance from Wall to Wall, not Center to Center
-
 	distance.x -= (iDimensions.x / 2) + (thisDimensions.x / 2);
 	distance.y -= (iDimensions.y / 2) + (thisDimensions.y / 2);
 	distance.z -= (iDimensions.z / 2) + (thisDimensions.z / 2);
 
 	return distance;
+}
+
+void Actor::AttachEntity(WorldEntity* entity, glm::vec3 positionOffset /*= { 0.0f, 0.0f, 0.0f}*/)
+{
+	if (!entity)
+		return;
+
+	glm::vec3 offset(0.0f);
+	offset = m_Position;
+	if (positionOffset != glm::vec3{ 0.0f, 0.0f, 0.0f })
+		offset += positionOffset;
+
+	entity->b_IsAttachedToEntity = true;
+	entity->m_EntityAttchedTo = this;
+	entity->SetPosition(offset);
+	v_AttachedEntities.push_back({ entity, offset });
+}
+
+
+void Actor::TranslateAttachedEntities(glm::vec3 translation)
+{
+	for (int x = 0; x < v_AttachedEntities.size(); x++)
+	{
+		v_AttachedEntities[x].m_Entity->Translate(translation);
+	}
+}
+
+void Actor::RotateAttachedEntities(float degrees, glm::vec3 rotationAxis)
+{
+	for (int x = 0; x < v_AttachedEntities.size(); x++)
+	{
+		v_AttachedEntities[x].m_Entity->Rotate(degrees, rotationAxis, v_AttachedEntities[x].m_Offset);
+	}
 }

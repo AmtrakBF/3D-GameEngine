@@ -76,6 +76,7 @@ void Engine::Run()
 		glfwPollEvents();
 
 	}
+	EventSystem::Instance()->Shutdown();
 	glfwTerminate();
 }
 
