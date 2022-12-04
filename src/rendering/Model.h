@@ -24,11 +24,13 @@ protected:
 public:
 	Model(const char* src, Shader& shader);
 	Model(Shader* shader, const std::vector<glm::vec3>* vertices, const std::vector<glm::uvec3>* indices = nullptr);
-	Model() : m_Shader(nullptr), v_Vertices(0), m_ModelName(""), b_UseIndexArray(false), m_Dimensions(0.0f), b_IsCollision(false) {};
+	Model() : m_Shader(nullptr), v_Vertices(0), m_ModelName(""), b_UseIndexArray(false), m_Dimensions(0.0f), b_IsCollision(false)
+	, m_EntityMax(0.0f), m_EntityMin(0.0f) {};
 	Model(const Model& model);
 
 	void LoadModel(const char* src);
 	void InitVertexArray(GLenum drawType);
+	void CalculateEntityMaxMin();
 	uint32_t GetSizeInBytes();
 
 	inline glm::vec3 Dimensions() const { return m_Dimensions; }
@@ -42,6 +44,7 @@ public:
 
 	std::string m_ModelName;
 	glm::vec3 m_Dimensions;
+	glm::vec3 m_EntityMax, m_EntityMin;
 
 	Shader* m_Shader;
 	VertexArray VAO;

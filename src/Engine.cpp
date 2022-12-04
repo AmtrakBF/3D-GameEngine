@@ -6,6 +6,8 @@
 #include "rendering/Renderer.h"
 #include "entities/World.h"
 
+#include "debug/Debug.h"
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 Engine* Engine::Instance()
@@ -68,6 +70,7 @@ void Engine::Run()
 
 		World::OnUpdate();
 		Renderer::Clear();
+		Debug::Instance()->DrawCollisions();
 		EventSystem::Instance()->SendEvent("OnUpdate", window);
 		EventSystem::Instance()->ProcessEvents();
 		Renderer::Draw();

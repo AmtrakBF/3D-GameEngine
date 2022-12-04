@@ -7,7 +7,7 @@
 #include <debug/Debug.h>
 
 Model::Model(const char* src, Shader& shader)
-	: m_Shader(&shader), m_ModelName(""), v_Vertices(0), b_UseIndexArray(false), m_Dimensions(0.0f), b_IsCollision(false)
+	: m_Shader(&shader), m_ModelName(""), v_Vertices(0), b_UseIndexArray(false), m_Dimensions(0.0f), b_IsCollision(false), m_EntityMax(0.0f), m_EntityMin(0.0f)
 {
 	LoadModel(src);
 }
@@ -19,12 +19,14 @@ Model::Model(const Model& model)
 	v_CollisonDimensions = model.v_CollisonDimensions;
 	m_Shader = model.m_Shader;
 	m_Dimensions = model.m_Dimensions;
-	b_UseIndexArray = false;
-	b_IsCollision = false;
+	b_UseIndexArray = model.b_UseIndexArray;
+	b_IsCollision = model.b_IsCollision;
+	m_EntityMax = model.m_EntityMax;
+	m_EntityMin = model.m_EntityMin;
 }
 
 Model::Model(Shader* shader, const std::vector<glm::vec3>* vertices, const std::vector<glm::uvec3>* indices /*= nullptr*/)
-	: m_Shader(shader), m_ModelName(""), v_Vertices(0), b_UseIndexArray(false), m_Dimensions(0.0f), b_IsCollision(true)
+	: m_Shader(shader), m_ModelName(""), v_Vertices(0), b_UseIndexArray(false), m_Dimensions(0.0f), b_IsCollision(true), m_EntityMax(0.0f), m_EntityMin(0.0f)
 {
 	if (vertices)
 	{
@@ -210,6 +212,7 @@ void Model::LoadModel(const char* src)
 	}
 
 	m_Dimensions = abs(abs(max) + abs(min));
+	CalculateEntityMaxMin();
 	file.close();
 }
 
@@ -232,6 +235,32 @@ void Model::InitVertexArray(GLenum drawType)
 	VBO.Unbind();
 	if (b_UseIndexArray)
 		EBO.Unbind();
+}
+
+void Model::CalculateEntityMaxMin()
+{
+	if (v_Vertices.empty())
+		return;
+
+	m_EntityMax = v_Vertices[0].vertices;
+	m_EntityMin = v_Vertices[0].vertices;
+
+	for (int x = 0; x < v_Vertices.size(); x++)
+	{
+		if (v_Vertices[x].vertices.x < m_EntityMin.x)
+			m_EntityMin.x = v_Vertices[x].vertices.x;
+		if (v_Vertices[x].vertices.y < m_EntityMin.y)
+			m_EntityMin.y = v_Vertices[x].vertices.y;
+		if (v_Vertices[x].vertices.z < m_EntityMin.z)
+			m_EntityMin.z = v_Vertices[x].vertices.z;
+
+		if (v_Vertices[x].vertices.x > m_EntityMax.x)
+			m_EntityMax.x = v_Vertices[x].vertices.x;
+		if (v_Vertices[x].vertices.y > m_EntityMax.y)
+			m_EntityMax.y = v_Vertices[x].vertices.y;
+		if (v_Vertices[x].vertices.z > m_EntityMax.z)
+			m_EntityMax.z = v_Vertices[x].vertices.z;
+	}
 }
 
 uint32_t Model::GetSizeInBytes()

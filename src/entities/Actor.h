@@ -26,9 +26,8 @@ public:
 	//! Really should only be attaching Actors
 	void AttachEntity(WorldEntity* entity, glm::vec3 positionOffset = { 0.0f, 0.0f, 0.0f });
 
-
 protected:
-	void RotateCollisionData(glm::vec3 translation, float degrees, glm::vec3 rotationAxis) override;
+	void RotateCollisionData(glm::vec3 translation, float degrees, glm::vec3 rotationAxis, glm::vec3 offset = {0.0f, 0.0f, 0.0f}) override;
 
 	struct AttachedEntity
 	{
@@ -37,6 +36,7 @@ protected:
 	};
 
 private:
+
 	glm::mat4 m_TranslationMatrix, m_ViewMatrix, m_ProjectionMatrix;
 	std::vector<AttachedEntity> v_AttachedEntities;
 };

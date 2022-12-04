@@ -34,15 +34,6 @@ Actor::Actor(Model model, glm::vec3 position)
 	b_UseCollision = true;
 	Translate(position);
 
-	//! -------------------------------------------------------------- POSSIBLE OPTIMIZATION -----------------------------------------------------
-	for (const auto& i : m_Model.v_CollisonDimensions)
-	{
-		v_CollisionBoxes.push_back(CollisionBox{ this, i });
-	}
-
-	if (v_CollisionBoxes.empty())
-		b_UseCollision = false;
-
 	EventSystem::Instance()->RegisterClient("OnUpdate", this);
 }
 
@@ -62,23 +53,25 @@ Actor::~Actor()
 //! translates the object on CPU side
 void Actor::Translate(glm::vec3 translation)
 {
-	//! update position
+	//! update m_Position && collisionBoxes && m_Direction
 	TranslateCollisionData(translation);
+	//! update entity Min and Max values (each entity is represented as a box, used for checking distance)
 	UpdateEntityMinMax();
+	//! translate entities that are attached to this object
 	TranslateAttachedEntities(translation);
 
 	glm::vec3 directionalTravel = Collision::Instance()->UpdateCollision(this);
 
 	if (directionalTravel != glm::vec3(1.0f))
 	{
-		if (b_IsAttachedToEntity)
+		if (b_IsAttachedToEntity && directionalTravel != glm::vec3(0.0f))
 		{
 			m_EntityAttchedTo->Translate(directionalTravel);
 		}
 		else
 		{
-			TranslateAttachedEntities(directionalTravel);
 			TranslateCollisionData(directionalTravel);
+			TranslateAttachedEntities(directionalTravel);
 			translation += directionalTravel;
 		}
 	}
@@ -93,6 +86,7 @@ void Actor::Translate(glm::vec3 translation)
 		m_Model.v_Vertices[x].vertices = m_TranslationMatrix * glm::vec4(m_Model.v_Vertices[x].vertices, 1.0f);
 	}
 	UpdateEntityMinMax();
+	UpdatePosition();
 	//! update the GPU buffer with updated vertex data
 	m_Model.VBO.UpdateBuffer(&m_Model.v_Vertices[0], m_Model.GetSizeInBytes());
 }
@@ -109,14 +103,24 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis, glm::vec3 offset /*= {
 	//! set temp position buffer
 	glm::vec3 pos = m_Position;
 
+	RotateAttachedEntities(degrees, rotationAxis);
+	if (!b_IsAttachedToEntity && b_AttachedEntityRotationFailed)
+	{
+		RotateAttachedEntities(-degrees, rotationAxis);
+		SetRotationFail(false);
+		return;
+	}
+
+
 	//! translate to origin, and then perform rotation matrix
 	Translate(-m_Position + offset);
 
+	RotateCollisionData(pos, degrees, rotationAxis, offset);
+	UpdateEntityMinMax();
+	UpdatePosition();
+
 	m_TranslationMatrix = glm::mat4(1.0f);
 	m_TranslationMatrix = glm::rotate(m_TranslationMatrix, glm::radians(degrees), rotationAxis);
-
-	RotateCollisionData(pos, degrees, rotationAxis);
-	UpdateEntityMinMax();
 
 	//! Check if collision is detected
 	//! If so, rotate back to original position
@@ -124,20 +128,33 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis, glm::vec3 offset /*= {
 	glm::vec3 directionalTravel = Collision::Instance()->UpdateCollision(this);
 	if (directionalTravel != glm::vec3(1.0f))
 	{
- 		m_TranslationMatrix = glm::mat4(1.0f);
-		m_TranslationMatrix = glm::rotate(m_TranslationMatrix, glm::radians(0.0f), rotationAxis);
-
-		for (auto& i : v_CollisionBoxes)
+		if (b_IsAttachedToEntity)
 		{
-			i.Translate(-pos);
- 			i.Rotate(-degrees, rotationAxis);
+			m_EntityAttchedTo->SetRotationFail(true);
+
+			for (auto& i : v_CollisionBoxes)
+				i.Translate(-pos);
+			UpdateEntityMinMax();
+			UpdatePosition();
+		}
+		else
+		{
+			for (auto& i : v_CollisionBoxes)
+				i.Translate(-pos);
+			RotateCollisionData(-pos, -degrees, rotationAxis, offset);
+			UpdateEntityMinMax();
+			UpdatePosition();
+
+			m_TranslationMatrix = glm::mat4(1.0f);
+ 			m_TranslationMatrix = glm::rotate(m_TranslationMatrix, glm::radians(0.0f), rotationAxis);
 		}
 	}
 	else
 	{
 		for (auto& i : v_CollisionBoxes)
 			i.Translate(-pos);
-		RotateAttachedEntities(degrees, rotationAxis);
+		UpdateEntityMinMax();
+		UpdatePosition();
 	}
 	
 	//! loop through each pair of vertex positions and update with rotation matrix
@@ -149,9 +166,11 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis, glm::vec3 offset /*= {
 	}
 
 	//! translate back to previous location and apply new vertex data to GPU buffer
-	Translate(pos - offset);
+	if (b_IsAttachedToEntity)
+		Translate(m_EntityAttchedTo->m_Position);
+	else
+		Translate(pos - offset);
 	UpdateEntityMinMax();
-
 	m_Model.VBO.UpdateBuffer(&m_Model.v_Vertices[0], m_Model.GetSizeInBytes());
 }
 
@@ -161,13 +180,13 @@ void Actor::Scale(glm::vec3 scale)
 	Scale(scale);
 }
 
-void Actor::RotateCollisionData(glm::vec3 translation, float degrees, glm::vec3 rotationAxis)
+void Actor::RotateCollisionData(glm::vec3 translation, float degrees, glm::vec3 rotationAxis, glm::vec3 offset)
 {
 	//! Rotate all collisions associated with object
 	for (auto& i : v_CollisionBoxes)
 	{
 		i.Rotate(degrees, rotationAxis);
-		i.Translate(translation);
+		i.Translate(translation - offset);
 	}
 }
 
@@ -241,21 +260,19 @@ std::vector<WorldEntity*> Actor::GetNearbyObjects_CollisionBox(glm::vec3 distanc
 glm::vec3 Actor::GetDistance(WorldEntity* entity)
 {
 	if (!entity->b_UseCollision || !b_UseCollision)
-		return glm::vec3(0.0f);
+		return glm::vec3(1.0f);
 
-	glm::vec3 center = { m_Model.Dimensions().x / 2, m_Model.Dimensions().y / 2, m_Model.Dimensions().z / 2 };
-	center += m_Position;
-	glm::vec3 entityCenter = { entity->m_Model.Dimensions().x / 2, entity->m_Model.Dimensions().y / 2, entity->m_Model.Dimensions().z / 2 };
-	entityCenter += entity->m_Position;
+	glm::vec3 distance = glm::abs(entity->m_Position) - abs(m_Position);
 
-	//! Distance from center to center
-	glm::vec3 distance = glm::abs(entityCenter - center);
+	//! Get CollisionDimensions
+	glm::vec3 iDimensions = abs(entity->m_EntityMax - entity->m_EntityMin);
+	glm::vec3 thisDimensions = abs(m_EntityMax - m_EntityMin);
 
-	//! We are calculating the difference from the center of model and half the size of the other model
+	//! We are calculating the difference from CollisionCenter and half the size of the CollisionBox
 	//!! Once we know that, we can then get the actual distance from Wall to Wall, not Center to Center
-	distance.x -= (entity->m_Model.Dimensions().x / 2) + (m_Model.Dimensions().x / 2);
-	distance.y -= (entity->m_Model.Dimensions().y / 2) + (m_Model.Dimensions().y / 2);
-	distance.z -= (entity->m_Model.Dimensions().z / 2) + (m_Model.Dimensions().z / 2);
+	distance.x -= (iDimensions.x / 2) + (thisDimensions.x / 2);
+	distance.y -= (iDimensions.y / 2) + (thisDimensions.y / 2);
+	distance.z -= (iDimensions.z / 2) + (thisDimensions.z / 2);
 
 	return distance;
 }
@@ -268,8 +285,8 @@ glm::vec3 Actor::GetCollisionDistance(WorldEntity* entity)
 	glm::vec3 distance = glm::abs(entity->m_Position) - abs(m_Position);
 
 	//! Get CollisionDimensions
-	glm::vec3 iDimensions = abs(entity->m_CollisionMax - entity->m_CollisionMin);
-	glm::vec3 thisDimensions = abs(m_CollisionMax - m_CollisionMin);
+	glm::vec3 iDimensions = abs(entity->m_EntityMax - entity->m_EntityMin);
+	glm::vec3 thisDimensions = abs(m_EntityMax - m_EntityMin);
 
 	//! We are calculating the difference from CollisionCenter and half the size of the CollisionBox
 	//!! Once we know that, we can then get the actual distance from Wall to Wall, not Center to Center
@@ -296,7 +313,6 @@ void Actor::AttachEntity(WorldEntity* entity, glm::vec3 positionOffset /*= { 0.0
 	v_AttachedEntities.push_back({ entity, offset });
 }
 
-
 void Actor::TranslateAttachedEntities(glm::vec3 translation)
 {
 	for (int x = 0; x < v_AttachedEntities.size(); x++)
@@ -309,6 +325,7 @@ void Actor::RotateAttachedEntities(float degrees, glm::vec3 rotationAxis)
 {
 	for (int x = 0; x < v_AttachedEntities.size(); x++)
 	{
-		v_AttachedEntities[x].m_Entity->Rotate(degrees, rotationAxis, v_AttachedEntities[x].m_Offset);
+		glm::vec3 offset = v_AttachedEntities[x].m_Entity->m_Position - m_Position;
+		v_AttachedEntities[x].m_Entity->Rotate(degrees, rotationAxis, offset);
 	}
 }

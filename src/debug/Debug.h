@@ -34,6 +34,7 @@ public:
 
 	//! Very CPU Expensive
 	void DrawCollisions(WorldEntity* entity);
+	void DrawCollisions();
 	void CreateCollisions(WorldEntity* entity);
 	void DeleteCollisions();
 	void DebugCircle(glm::vec3 position, float radius);

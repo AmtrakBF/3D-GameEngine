@@ -20,6 +20,11 @@ void Debug::DrawCollisions(WorldEntity* entity)
 	CreateCollisions(entity);
 }
 
+void Debug::DrawCollisions()
+{
+	DeleteCollisions();
+}
+
 void Debug::CreateCollisions(WorldEntity* entity)
 {
 	std::vector<glm::vec3> vertices;

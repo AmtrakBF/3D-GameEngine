@@ -6,7 +6,8 @@
 
 WorldEntity::WorldEntity()
 	: m_Name(""), m_Position(0.0f), m_Rotation({ 0.0f, 0.0f, 90.0f }), m_Scale(0.0f), m_Direction(0.0f), b_UseCollision(false), m_Id(0), m_EntityAttchedTo(nullptr),
-	m_TranslationMatrix(glm::mat4(1.0f)), m_ViewMatrix(glm::mat4(1.0f)), m_ProjectionMatrix(glm::mat4(1.0f)), m_CollisionMin(0.0f), m_CollisionMax(0.0f), b_IsAttachedToEntity(false)
+	m_TranslationMatrix(glm::mat4(1.0f)), m_ViewMatrix(glm::mat4(1.0f)), m_ProjectionMatrix(glm::mat4(1.0f)), m_EntityMin(0.0f), m_EntityMax(0.0f), b_IsAttachedToEntity(false),
+	b_AttachedEntityRotationFailed(false)
 {
 
 }
@@ -28,7 +29,18 @@ void WorldEntity::AttachModel(Model& model, GLenum drawType)
 	//! initialize vertexArray for model
 	m_Model.InitVertexArray(drawType);
 
-	UpdateEntityMinMax();
+		//! -------------------------------------------------------------- POSSIBLE OPTIMIZATION -----------------------------------------------------
+	for (const auto& i : m_Model.v_CollisonDimensions)
+	{
+		v_CollisionBoxes.push_back(CollisionBox{ this, i });
+	}
+
+	if (v_CollisionBoxes.empty())
+		b_UseCollision = false;
+
+	m_EntityMax = model.m_EntityMax;
+	m_EntityMin = model.m_EntityMin;
+	m_Position = GetPosition();
 
 	Renderer::Entities.push_back(this);
 	m_Id = Renderer::SetId();
@@ -40,7 +52,6 @@ void WorldEntity::UpdateEntityMinMax()
 		return;
 
 	glm::vec3 min = v_CollisionBoxes[0].CollisionMin(), max = v_CollisionBoxes[0].CollisionMax();
-	bool firstIt = true;
 
 	//! Skip first index as we set first index to min and max values
 	for (int x = 1; x < v_CollisionBoxes.size(); x++)
@@ -62,8 +73,13 @@ void WorldEntity::UpdateEntityMinMax()
 		if (tempMax.z > max.z)
 			max.z = tempMax.z;
 	}
-	m_CollisionMax = max;
-	m_CollisionMin = min;
+	m_EntityMax = max;
+	m_EntityMin = min;
+}
+
+glm::vec3 WorldEntity::GetPosition()
+{
+	return { (m_EntityMax.x + m_EntityMin.x) / 2, (m_EntityMax.y + m_EntityMin.y) / 2, (m_EntityMax.z + m_EntityMin.z) / 2 };
 }
 
 void WorldEntity::SetPosition(glm::vec3 position)
@@ -72,6 +88,11 @@ void WorldEntity::SetPosition(glm::vec3 position)
 	//! Can probably do mathematics to optimize
 	Translate(-m_Position);
 	Translate(position);
+}
+
+void WorldEntity::UpdatePosition()
+{
+	m_Position = GetPosition();
 }
 
 //! translates the object on CPU side
@@ -92,6 +113,7 @@ void WorldEntity::Translate(glm::vec3 translation)
 	}
 	//! update the GPU buffer with updated vertex data
 	m_Model.VBO.UpdateBuffer(&m_Model.v_Vertices[0], m_Model.GetSizeInBytes());
+	UpdatePosition();
 }
 
 //! rotates the object on CPU side
@@ -121,7 +143,7 @@ void WorldEntity::Rotate(float degrees, glm::vec3 rotationAxis, glm::vec3 offset
 	}
 
 	//! translate back to previous location and apply new vertex data to GPU buffer
-	RotateCollisionData(pos, degrees, rotationAxis);
+	RotateCollisionData(pos, degrees, rotationAxis, offset);
 	UpdateEntityMinMax();
 	Translate(pos - offset);
 
@@ -162,7 +184,9 @@ void WorldEntity::Scale(glm::vec3 scale)
 
 void WorldEntity::TranslateCollisionData(glm::vec3 translation)
 {
-	m_Position += translation;
+	if (translation == glm::vec3(0.0f))
+		return;
+
 	for (auto& i : v_CollisionBoxes)
 	{
 		i.Translate(translation);
@@ -171,7 +195,7 @@ void WorldEntity::TranslateCollisionData(glm::vec3 translation)
 	m_Direction = glm::normalize(translation);
 }
 
-void WorldEntity::RotateCollisionData(glm::vec3 translation, float degrees, glm::vec3 rotationAxis)
+void WorldEntity::RotateCollisionData(glm::vec3 translation, float degrees, glm::vec3 rotationAxis, glm::vec3 offset)
 {
 	//! Rotate all collisions associated with object
 	for (auto& i : v_CollisionBoxes)
@@ -191,4 +215,9 @@ void WorldEntity::ScaleCollisionData(glm::vec3 scale)
 uint32_t WorldEntity::GetId()
 {
 	return m_Id;
+}
+
+void WorldEntity::SetRotationFail(bool condition)
+{
+	b_AttachedEntityRotationFailed = condition;
 }
