@@ -1,4 +1,5 @@
 #include "VertexBuffer.h"
+#include "debug/Debug.h"
 
 VertexBuffer::VertexBuffer(const void* data, const uint32_t& dataSize, const GLenum drawType)
 	: ID(0)

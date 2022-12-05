@@ -14,6 +14,7 @@ private:
 protected:
 	uint32_t m_Id;
 	bool b_AttachedEntityRotationFailed;
+	bool b_AttachedEntityTranslationFailed;
 
 public:
 	WorldEntity();
@@ -24,11 +25,13 @@ public:
 	glm::vec3 m_Scale;
 	glm::vec3 m_Direction;
 
+	glm::vec3 m_CollisionDirection;
 	glm::vec3 m_EntityMin;
 	glm::vec3 m_EntityMax;
 
 	bool b_UseCollision;
 	bool b_IsAttachedToEntity;
+
 	WorldEntity* m_EntityAttchedTo;
 	Model m_Model;
 
@@ -39,9 +42,9 @@ public:
 	void SetPosition(glm::vec3 position);
 	void UpdatePosition();
 
-	virtual void Translate(glm::vec3 translation);
-	virtual void Rotate(float degrees, glm::vec3 rotationAxis, glm::vec3 offset = {0.0f, 0.0f, 0.0f});
-	virtual void Scale(glm::vec3 scale);
+	virtual void Translate(glm::vec3 translation, bool checkForCollision = true);
+	virtual void Rotate(float degrees, glm::vec3 rotationAxis, bool checkForCollision = true, glm::vec3 offset = {0.0f, 0.0f, 0.0f});
+	virtual void Scale(glm::vec3 scale, bool checkForCollision = true);
 
 	virtual void TranslateCollisionData(glm::vec3 translation);
 	virtual void RotateCollisionData(glm::vec3 translation, float degrees, glm::vec3 rotationAxis, glm::vec3 offset = { 0.0f, 0.0f, 0.0f });
@@ -53,6 +56,7 @@ public:
 	void AttachModel(Model& model, GLenum drawType);
 
 	void SetRotationFail(bool condition);
+	void SetTranslationFail(bool condition);
 
 	uint32_t GetId();
 

@@ -30,10 +30,10 @@ bool Collision::CheckCollision(WorldEntity* a, WorldEntity* b)
 					//! -------------------------------------------------------------------------------------------- DEBUG ------------------------------------------------------------------------
 					//! why don't we use the actor collisions box direction instead of the other object?
 					//! may cause issues further down with multiple actors
-					x.m_CollisionDirection = GetCollisionDirection(a->m_Direction ,&i, &x);
+					a->m_CollisionDirection = GetCollisionDirection(a->m_Direction ,&i, &x);
 					return true;
 				}
-				x.m_CollisionDirection = glm::vec3(0.0f);
+				a->m_CollisionDirection = glm::vec3(0.0f);
 			}
 		}
 	}
@@ -128,8 +128,8 @@ glm::vec3 Collision::UpdateCollision(Actor* actor)
 		//! check all nearby entities of the Actor i
 		if (entities[x]->b_UseCollision && CheckCollision(actor, entities[x]))
 		{
-			EventSystem::Instance()->SendEvent("Collision", entities[x]);
-			return entities[x]->v_CollisionBoxes[0].m_CollisionDirection;
+			EventSystem::Instance()->SendEvent("OnCollision", entities[x]);
+			return actor->m_CollisionDirection;
 		}
 	}
 	return { 1.0f, 1.0f, 1.0f };

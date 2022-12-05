@@ -7,7 +7,7 @@
 WorldEntity::WorldEntity()
 	: m_Name(""), m_Position(0.0f), m_Rotation({ 0.0f, 0.0f, 90.0f }), m_Scale(0.0f), m_Direction(0.0f), b_UseCollision(false), m_Id(0), m_EntityAttchedTo(nullptr),
 	m_TranslationMatrix(glm::mat4(1.0f)), m_ViewMatrix(glm::mat4(1.0f)), m_ProjectionMatrix(glm::mat4(1.0f)), m_EntityMin(0.0f), m_EntityMax(0.0f), b_IsAttachedToEntity(false),
-	b_AttachedEntityRotationFailed(false)
+	b_AttachedEntityRotationFailed(false), m_CollisionDirection(0.0f), b_AttachedEntityTranslationFailed(false)
 {
 
 }
@@ -96,7 +96,7 @@ void WorldEntity::UpdatePosition()
 }
 
 //! translates the object on CPU side
-void WorldEntity::Translate(glm::vec3 translation)
+void WorldEntity::Translate(glm::vec3 translation, bool checkForCollision /*= true*/)
 {
 	//! update position
 	TranslateCollisionData(translation);
@@ -117,7 +117,7 @@ void WorldEntity::Translate(glm::vec3 translation)
 }
 
 //! rotates the object on CPU side
-void WorldEntity::Rotate(float degrees, glm::vec3 rotationAxis, glm::vec3 offset /*= { 0.0f, 0.0f, 0.0f }*/)
+void WorldEntity::Rotate(float degrees, glm::vec3 rotationAxis, bool checkForCollision /*= true*/, glm::vec3 offset /*= { 0.0f, 0.0f, 0.0f }*/)
 {
 	//! update member rotation and normalize around 360 degrees of rotation
 	m_Rotation += rotationAxis * degrees;
@@ -151,7 +151,7 @@ void WorldEntity::Rotate(float degrees, glm::vec3 rotationAxis, glm::vec3 offset
 }
 
 //! scales the object on CPU side
-void WorldEntity::Scale(glm::vec3 scale)
+void WorldEntity::Scale(glm::vec3 scale, bool checkForCollision /*= true*/)
 {
 	//! check to see if parameters are uniform
 	bool nonUniform = false;
@@ -191,7 +191,6 @@ void WorldEntity::TranslateCollisionData(glm::vec3 translation)
 	{
 		i.Translate(translation);
 	}
-	//if (!isRotation) ------------------------------------------- MAY CAUSE ISSUES -------------------------------------------
 	m_Direction = glm::normalize(translation);
 }
 
@@ -220,4 +219,9 @@ uint32_t WorldEntity::GetId()
 void WorldEntity::SetRotationFail(bool condition)
 {
 	b_AttachedEntityRotationFailed = condition;
+}
+
+void WorldEntity::SetTranslationFail(bool condition)
+{
+	b_AttachedEntityTranslationFailed = condition;
 }

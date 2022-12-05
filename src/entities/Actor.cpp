@@ -8,8 +8,8 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 #include <iostream>
-#include "debug/Debug.h"
 
+#include "debug/Debug.h"
 
 /*
 * 
@@ -51,28 +51,42 @@ Actor::~Actor()
 }
 
 //! translates the object on CPU side
-void Actor::Translate(glm::vec3 translation)
+void Actor::Translate(glm::vec3 translation, bool checkForCollision /*= true*/)
 {
+	//! translate entities that are attached to this object
+	TranslateAttachedEntities(translation);
+
+	if (!b_IsAttachedToEntity && b_AttachedEntityTranslationFailed)
+	{
+		TranslateAttachedEntities(m_CollisionDirection, true);
+		SetTranslationFail(false);
+		WorldEntity::Translate(translation);
+		WorldEntity::Translate(m_CollisionDirection);
+		return;
+	}
+
 	//! update m_Position && collisionBoxes && m_Direction
 	TranslateCollisionData(translation);
 	//! update entity Min and Max values (each entity is represented as a box, used for checking distance)
 	UpdateEntityMinMax();
-	//! translate entities that are attached to this object
-	TranslateAttachedEntities(translation);
 
-	glm::vec3 directionalTravel = Collision::Instance()->UpdateCollision(this);
-
-	if (directionalTravel != glm::vec3(1.0f))
+	if (checkForCollision)
 	{
-		if (b_IsAttachedToEntity && directionalTravel != glm::vec3(0.0f))
+		glm::vec3 directionalTravel = Collision::Instance()->UpdateCollision(this);
+		//! Collision Detected!
+		if (directionalTravel != glm::vec3(1.0f))
 		{
-			m_EntityAttchedTo->Translate(directionalTravel);
-		}
-		else
-		{
-			TranslateCollisionData(directionalTravel);
-			TranslateAttachedEntities(directionalTravel);
-			translation += directionalTravel;
+			if (b_IsAttachedToEntity)
+			{
+				m_EntityAttchedTo->SetTranslationFail(true);
+				m_EntityAttchedTo->m_CollisionDirection = directionalTravel;
+			}
+			else
+			{
+				TranslateCollisionData(directionalTravel);
+				TranslateAttachedEntities(directionalTravel);
+				translation += directionalTravel;
+			}
 		}
 	}
 
@@ -92,7 +106,7 @@ void Actor::Translate(glm::vec3 translation)
 }
 
 //! rotates the object on CPU side
-void Actor::Rotate(float degrees, glm::vec3 rotationAxis, glm::vec3 offset /*= { 0.0f, 0.0f, 0.0f }*/)
+void Actor::Rotate(float degrees, glm::vec3 rotationAxis, bool checkForCollision /*= true*/, glm::vec3 offset /*= { 0.0f, 0.0f, 0.0f }*/)
 {
 	//! update member rotation and normalize around 360 degrees of rotation
 	m_Rotation += rotationAxis * degrees;
@@ -103,44 +117,49 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis, glm::vec3 offset /*= {
 	//! set temp position buffer
 	glm::vec3 pos = m_Position;
 
+	//! Rotate attachedEntities -- looking for collisions
 	RotateAttachedEntities(degrees, rotationAxis);
+	//! If collision occurs, rotate attachedEntities back to original position
+	//! Cancel rotation of this actor
 	if (!b_IsAttachedToEntity && b_AttachedEntityRotationFailed)
 	{
-		RotateAttachedEntities(-degrees, rotationAxis);
+		RotateAttachedEntities(-degrees, rotationAxis, true);
 		SetRotationFail(false);
 		return;
 	}
 
-
 	//! translate to origin, and then perform rotation matrix
 	Translate(-m_Position + offset);
-
+	//! Rotate collisionBoxes to search for collision
 	RotateCollisionData(pos, degrees, rotationAxis, offset);
+	//! Update min/max for nearbyEntity() purposes
 	UpdateEntityMinMax();
+	//! Need to update position
 	UpdatePosition();
 
 	m_TranslationMatrix = glm::mat4(1.0f);
 	m_TranslationMatrix = glm::rotate(m_TranslationMatrix, glm::radians(degrees), rotationAxis);
 
 	//! Check if collision is detected
-	//! If so, rotate back to original position
-	//! else continue on with regular translation
 	glm::vec3 directionalTravel = Collision::Instance()->UpdateCollision(this);
 	if (directionalTravel != glm::vec3(1.0f))
 	{
+		//! if this actor is attached to another, continue with rotation 
+		//! but mark as a failed rotation for the entity we are attached to
 		if (b_IsAttachedToEntity)
 		{
 			m_EntityAttchedTo->SetRotationFail(true);
 
 			for (auto& i : v_CollisionBoxes)
-				i.Translate(-pos);
+				i.Translate(-pos + offset);
 			UpdateEntityMinMax();
 			UpdatePosition();
 		}
+		//! if not attached to any entities, rotate back to original position
 		else
 		{
 			for (auto& i : v_CollisionBoxes)
-				i.Translate(-pos);
+				i.Translate(-pos + offset);
 			RotateCollisionData(-pos, -degrees, rotationAxis, offset);
 			UpdateEntityMinMax();
 			UpdatePosition();
@@ -149,14 +168,18 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis, glm::vec3 offset /*= {
  			m_TranslationMatrix = glm::rotate(m_TranslationMatrix, glm::radians(0.0f), rotationAxis);
 		}
 	}
+	//! if no collisions were detected
 	else
 	{
-		for (auto& i : v_CollisionBoxes)
-			i.Translate(-pos);
+		//! Set collisionBoxes back to origin
+ 		for (auto& i : v_CollisionBoxes)
+ 			i.Translate(-pos + offset);
+		//! Reset Min/Max
 		UpdateEntityMinMax();
+		//! Reset Position
 		UpdatePosition();
 	}
-	
+
 	//! loop through each pair of vertex positions and update with rotation matrix
 	//! make sure normals are corrected for rotation
 	for (int x = 0; x < m_Model.v_Vertices.size(); x++)
@@ -165,17 +188,21 @@ void Actor::Rotate(float degrees, glm::vec3 rotationAxis, glm::vec3 offset /*= {
 		m_Model.v_Vertices[x].normals = glm::mat3(glm::transpose(glm::inverse(m_TranslationMatrix))) * m_Model.v_Vertices[x].normals;
 	}
 
-	//! translate back to previous location and apply new vertex data to GPU buffer
+	//! translate from origin back to position
 	if (b_IsAttachedToEntity)
 		Translate(m_EntityAttchedTo->m_Position);
 	else
+	{
 		Translate(pos - offset);
+	}
+	//! Update Min/Max with new position
 	UpdateEntityMinMax();
+	//! Update GPU vertex data
 	m_Model.VBO.UpdateBuffer(&m_Model.v_Vertices[0], m_Model.GetSizeInBytes());
 }
 
 //! scales the object on CPU side
-void Actor::Scale(glm::vec3 scale)
+void Actor::Scale(glm::vec3 scale, bool checkForCollision /*= true*/)
 {
 	Scale(scale);
 }
@@ -238,7 +265,7 @@ std::vector<WorldEntity*> Actor::GetNearbyObjects_CollisionBox(glm::vec3 distanc
 		bool isNotAttached = true;
 		for (int x = 0; x < v_AttachedEntities.size(); x++)
 		{
-			if (v_AttachedEntities[x].m_Entity->GetId() == i->GetId())
+			if (v_AttachedEntities[x]->GetId() == i->GetId())
 				isNotAttached = false;
 		}
 
@@ -310,22 +337,46 @@ void Actor::AttachEntity(WorldEntity* entity, glm::vec3 positionOffset /*= { 0.0
 	entity->b_IsAttachedToEntity = true;
 	entity->m_EntityAttchedTo = this;
 	entity->SetPosition(offset);
-	v_AttachedEntities.push_back({ entity, offset });
+	v_AttachedEntities.push_back(entity);
 }
 
-void Actor::TranslateAttachedEntities(glm::vec3 translation)
+void Actor::DetachEntity(WorldEntity* entity, glm::vec3 positionOffset /*= { 0.0f, 0.0f, 0.0f }*/)
+{
+	if (!entity)
+		return;
+
+	glm::vec3 offset(0.0f);
+	offset = m_Position;
+	if (positionOffset != glm::vec3{ 0.0f, 0.0f, 0.0f })
+		offset += positionOffset;
+
+	entity->b_IsAttachedToEntity = false;
+	entity->m_EntityAttchedTo = nullptr;
+	entity->SetPosition(offset);
+
+ 	std::vector<WorldEntity*>::iterator iter = v_AttachedEntities.begin();
+
+	while(iter != v_AttachedEntities.end())
+	{
+		if ((*iter)->GetId() == entity->GetId())
+			break;
+	}
+	v_AttachedEntities.erase(iter);
+}
+
+void Actor::TranslateAttachedEntities(glm::vec3 translation, bool checkForCollision /*= true*/)
 {
 	for (int x = 0; x < v_AttachedEntities.size(); x++)
 	{
-		v_AttachedEntities[x].m_Entity->Translate(translation);
+		v_AttachedEntities[x]->Translate(translation, checkForCollision);
 	}
 }
 
-void Actor::RotateAttachedEntities(float degrees, glm::vec3 rotationAxis)
+void Actor::RotateAttachedEntities(float degrees, glm::vec3 rotationAxis, bool checkForCollision /*= true*/)
 {
 	for (int x = 0; x < v_AttachedEntities.size(); x++)
 	{
-		glm::vec3 offset = v_AttachedEntities[x].m_Entity->m_Position - m_Position;
-		v_AttachedEntities[x].m_Entity->Rotate(degrees, rotationAxis, offset);
+		glm::vec3 offset = v_AttachedEntities[x]->m_Position - m_Position;
+		v_AttachedEntities[x]->Rotate(degrees, rotationAxis, checkForCollision, offset);
 	}
 }
